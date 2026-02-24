@@ -1,0 +1,82 @@
+{% load widget_tweaks %}
+
+<form id="pagoForm" method="post" action="">
+    {% csrf_token %}
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-money-bill-wave" style="color: #5dd39e; margin-right: 5px;"></i> {{ form.monto_pagado.label }}</label>
+        {% render_field form.monto_pagado class="zen-form-control" placeholder="0.00" %}
+        {% if form.monto_pagado.errors %}
+            <div class="zen-form-error">{{ form.monto_pagado.errors.0 }}</div>
+        {% endif %}
+        <small style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block;">
+            <i class="fas fa-info-circle"></i> Monto sugerido basado en el valor de la cuota
+        </small>
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-calendar-day" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.fecha_pago.label }}</label>
+        {% render_field form.fecha_pago class="zen-form-control" %}
+        {% if form.fecha_pago.errors %}
+            <div class="zen-form-error">{{ form.fecha_pago.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-comment-alt" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.notas.label }}</label>
+        {% render_field form.notas class="zen-form-control" rows="2" placeholder="Notas del pago (opcional)" %}
+        {% if form.notas.errors %}
+            <div class="zen-form-error">{{ form.notas.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
+        <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('pagoModal')">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="zen-btn zen-btn-success">
+            <i class="fas fa-check"></i> Registrar Pago
+        </button>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    // Establecer fecha actual por defecto
+    var today = new Date().toISOString().split('T')[0];
+    if (!$('#id_fecha_pago').val()) {
+        $('#id_fecha_pago').val(today);
+    }
+    
+    $('#pagoForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Limpiar errores previos
+        $('.zen-form-error').remove();
+        $('.zen-form-control').css('border-color', '#e8ecef');
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: $(this).serialize(),
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            success: function(response) {
+                if (response.success) {
+                    closeModal('pagoModal');
+                    location.reload();
+                }
+            },
+            error: function(xhr) {
+                if (xhr.status === 400) {
+                    var errors = xhr.responseJSON.errors;
+                    for (var field in errors) {
+                        var input = $('#id_' + field);
+                        input.css('border-color', '#ee5a6f');
+                        input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
+                    }
+                }
+            }
+        });
+    });
+});
+</script>

@@ -1,0 +1,105 @@
+{% load widget_tweaks %}
+
+<form id="clienteForm" method="post" action="">
+    {% csrf_token %}
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-id-card" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.cedula.label }}</label>
+            {% render_field form.cedula class="zen-form-control" placeholder="1234567890" %}
+            {% if form.cedula.errors %}
+                <div class="zen-form-error">{{ form.cedula.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-phone" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.telefono.label }}</label>
+            {% render_field form.telefono class="zen-form-control" placeholder="0999999999" %}
+            {% if form.telefono.errors %}
+                <div class="zen-form-error">{{ form.telefono.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-user" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.nombres.label }}</label>
+            {% render_field form.nombres class="zen-form-control" placeholder="Nombres" %}
+            {% if form.nombres.errors %}
+                <div class="zen-form-error">{{ form.nombres.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-user" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.apellidos.label }}</label>
+            {% render_field form.apellidos class="zen-form-control" placeholder="Apellidos" %}
+            {% if form.apellidos.errors %}
+                <div class="zen-form-error">{{ form.apellidos.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-envelope" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.email.label }}</label>
+        {% render_field form.email class="zen-form-control" placeholder="correo@ejemplo.com" %}
+        {% if form.email.errors %}
+            <div class="zen-form-error">{{ form.email.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-map-marker-alt" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.direccion.label }}</label>
+        {% render_field form.direccion class="zen-form-control" rows="2" placeholder="Dirección completa" %}
+        {% if form.direccion.errors %}
+            <div class="zen-form-error">{{ form.direccion.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
+        <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('clienteModal')">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="zen-btn zen-btn-primary">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+    </div>
+</form>
+
+<script>
+// Usar delegación de eventos para manejar formularios cargados dinámicamente
+$(document).on('submit', '#clienteForm', function(e) {
+    e.preventDefault();
+    
+    var $form = $(this);
+    var formUrl = $form.attr('action') || window.clienteFormUrl;
+    
+    // Limpiar errores previos
+    $('.zen-form-error').remove();
+    $('.zen-form-control').css('border-color', '#e8ecef');
+    
+    $.ajax({
+        url: formUrl,
+        type: 'POST',
+        data: $form.serialize(),
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        success: function(response) {
+            if (response.success) {
+                closeModal('clienteModal');
+                location.reload();
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 400) {
+                var errors = xhr.responseJSON.errors;
+                for (var field in errors) {
+                    var input = $('#id_' + field);
+                    input.css('border-color', '#ee5a6f');
+                    input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
+                }
+            } else {
+                alert('Error al guardar. Por favor intente nuevamente.');
+            }
+        }
+    });
+});
+</script>

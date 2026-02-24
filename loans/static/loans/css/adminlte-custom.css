@@ -1,0 +1,200 @@
+/* Custom CSS para estilo AdminLTE con Bootstrap 5 */
+
+:root {
+    --primary-color: #007bff;
+    --sidebar-bg: #343a40;
+    --sidebar-hover: #4b545c;
+    --content-bg: #f4f6f9;
+}
+
+/* Navbar estilo AdminLTE */
+.navbar {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Cards estilo AdminLTE */
+.card {
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+}
+
+/* Small boxes estilo AdminLTE */
+.small-box {
+    border-radius: 0.25rem;
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    display: block;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.small-box > .inner {
+    padding: 10px;
+}
+
+.small-box h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0 0 10px;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.small-box p {
+    font-size: 1rem;
+}
+
+.small-box .icon {
+    color: rgba(0,0,0,.15);
+    z-index: 0;
+}
+
+.small-box .icon > i {
+    font-size: 90px;
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    transition: transform .3s linear;
+}
+
+.small-box:hover .icon > i {
+    transform: scale(1.1);
+}
+
+.small-box-footer {
+    background-color: rgba(0,0,0,.1);
+    color: rgba(255,255,255,.8);
+    display: block;
+    padding: 3px 0;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.small-box-footer:hover {
+    background-color: rgba(0,0,0,.15);
+    color: #fff;
+}
+
+/* Tablas estilo AdminLTE */
+.table {
+    font-size: 0.9rem;
+}
+
+.table thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Badges mejorados */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Botones mejorados */
+.btn {
+    font-weight: 400;
+    border-radius: 0.25rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Modales estilo AdminLTE */
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+}
+
+/* Formularios */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Alertas */
+.alert {
+    border-radius: 0.25rem;
+    border-left: 3px solid;
+}
+
+.alert-success {
+    border-left-color: #28a745;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-info {
+    border-left-color: #17a2b8;
+}
+
+/* Paginación */
+.pagination {
+    margin-top: 1rem;
+}
+
+/* Hover effects */
+.table-hover tbody tr:hover {
+    background-color: rgba(0,0,0,.025);
+}
+
+/* Cards de color */
+.bg-info .card-body,
+.bg-danger .card-body,
+.bg-warning .card-body,
+.bg-success .card-body {
+    color: #fff;
+}
+
+.bg-info .card-footer,
+.bg-danger .card-footer,
+.bg-warning .card-footer,
+.bg-success .card-footer {
+    background-color: rgba(0,0,0,.1);
+}
+
+/* Opacity helper */
+.opacity-50 {
+    opacity: 0.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .small-box h3 {
+        font-size: 1.5rem;
+    }
+    
+    .small-box .icon > i {
+        font-size: 60px;
+    }
+}

@@ -1,0 +1,216 @@
+{% extends 'loans/base_zen.html' %}
+{% load static %}
+
+{% block title %}
+{% if tipo == 'vencidas' %}Cuotas Vencidas{% else %}Cuotas Próximas a Vencer{% endif %} - CrediFlow
+{% endblock %}
+
+{% block breadcrumb %}
+<span>/</span>
+<span>Cuotas</span>
+<span>/</span>
+<span>{% if tipo == 'vencidas' %}Vencidas{% else %}Próximas a Vencer{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="zen-page-header">
+    <h1 class="zen-page-title">
+        {% if tipo == 'vencidas' %}
+        <i class="fas fa-exclamation-triangle" style="color: #ee5a6f;"></i> Cuotas Vencidas
+        {% else %}
+        <i class="fas fa-clock" style="color: #f7b731;"></i> Cuotas Próximas a Vencer
+        {% endif %}
+    </h1>
+    <p class="zen-page-subtitle">
+        {% if tipo == 'vencidas' %}
+        Listado de cuotas con fecha de vencimiento pasada
+        {% else %}
+        Cuotas que vencen en los próximos {{ dias|default:7 }} días
+        {% endif %}
+    </p>
+</div>
+
+{% if not tiene_prestamos %}
+<!-- Mensaje cuando no hay préstamos en el sistema -->
+<div class="zen-card" style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 64px; color: #e8ecef; margin-bottom: 20px;">
+        <i class="fas fa-inbox"></i>
+    </div>
+    <h3 style="color: #7f8c8d; font-weight: 600; margin-bottom: 10px;">
+        El sistema aún no cuenta con préstamos
+    </h3>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">
+        Para ver cuotas {{ tipo }}, primero debe crear préstamos en el sistema.
+    </p>
+    <a href="{% url 'loans:prestamo-list' %}" class="zen-btn zen-btn-primary">
+        <i class="fas fa-plus"></i> Crear Primer Préstamo
+    </a>
+</div>
+{% else %}
+
+{% if tipo == 'proximas' %}
+<div class="zen-card" style="margin-bottom: 20px;">
+    <div class="zen-card-body">
+        <form method="get" id="filterForm" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 12px; color: #7f8c8d; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fas fa-calendar-alt"></i> Días a Vencer
+                </label>
+                <select name="dias" id="diasFilter" class="zen-form-control" style="width: 100%;" onchange="document.getElementById('filterForm').submit()">
+                    <option value="7" {% if dias == 7 %}selected{% endif %}>Próximos 7 días</option>
+                    <option value="15" {% if dias == 15 %}selected{% endif %}>Próximos 15 días</option>
+                    <option value="30" {% if dias == 30 %}selected{% endif %}>Próximos 30 días</option>
+                    <option value="60" {% if dias == 60 %}selected{% endif %}>Próximos 60 días</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="zen-card">
+    <div class="zen-card-header">
+        <h3 class="zen-card-title">
+            <i class="fas fa-list"></i> Listado de Cuotas
+        </h3>
+        <span class="zen-badge {% if tipo == 'vencidas' %}danger{% else %}warning{% endif %}">
+            {{ cuotas|length }} cuota{{ cuotas|length|pluralize }}
+        </span>
+    </div>
+    <div class="zen-card-body" style="padding: 0;">
+        <div class="zen-table-responsive">
+            <table class="zen-table">
+            <thead>
+                <tr>
+                    <th>Préstamo</th>
+                    <th>Cliente</th>
+                    <th>Cuota</th>
+                    <th>Monto</th>
+                    <th class="hide-mobile">Capital</th>
+                    <th class="hide-mobile">Interés</th>
+                    <th>Vencimiento</th>
+                    <th class="hide-mobile">Días</th>
+                    <th class="hide-mobile">Estado</th>
+                    <th style="text-align: center;">
+                        <span class="hide-mobile">Acciones</span>
+                        <i class="fas fa-cog show-mobile" style="display: none;"></i>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuota in cuotas %}
+                <tr>
+                    <td>
+                        <a href="{% url 'loans:prestamo-detail' cuota.prestamo.pk %}" style="color: #5b9bd5; text-decoration: none; font-weight: 600;">
+                            #{{ cuota.prestamo.id }}
+                        </a>
+                    </td>
+                    <td>{{ cuota.prestamo.cliente }}</td>
+                    <td>
+                        <strong>{{ cuota.numero_cuota }}</strong>
+                        <span class="show-mobile" style="display: none; margin-left: 5px;">
+                            {% if cuota.estado == 'PENDIENTE' %}
+                            <i class="fas fa-clock" style="color: #f7b731;" title="Pendiente"></i>
+                            {% else %}
+                            <i class="fas fa-check-circle" style="color: #5dd39e;" title="Pagada"></i>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td style="font-weight: 600;">${{ cuota.monto_total|floatformat:2 }}</td>
+                    <td class="hide-mobile">${{ cuota.monto_capital|floatformat:2 }}</td>
+                    <td class="hide-mobile">${{ cuota.monto_interes|floatformat:2 }}</td>
+                    <td style="color: #7f8c8d; white-space: nowrap;">{{ cuota.fecha_vencimiento|date:"d/m/Y" }}</td>
+                    <td class="hide-mobile">
+                        {% if tipo == 'vencidas' %}
+                        <span style="color: #ee5a6f; font-weight: 600;">
+                            {{ cuota.dias_hasta_vencimiento }} días
+                        </span>
+                        {% else %}
+                        <span style="color: #f7b731; font-weight: 600;">
+                            {{ cuota.dias_hasta_vencimiento }} días
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="hide-mobile">
+                        {% if cuota.estado == 'PENDIENTE' %}
+                        <span class="zen-badge warning">
+                            <i class="fas fa-clock"></i> Pendiente
+                        </span>
+                        {% else %}
+                        <span class="zen-badge success">
+                            <i class="fas fa-check-circle"></i> Pagada
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        {% if cuota.estado == 'PENDIENTE' %}
+                        <button type="button" class="zen-btn zen-btn-success cuota-pagar-btn" onclick="loadPagoForm('{% url 'loans:cuota-pago' cuota.pk %}')" style="padding: 8px 16px; font-size: 13px;">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span class="hide-mobile">Pagar</span>
+                        </button>
+                        {% else %}
+                        <span style="color: #5dd39e; font-size: 14px;">
+                            <i class="fas fa-check-circle"></i>
+                            <span class="hide-mobile" style="margin-left: 5px; font-size: 12px;">Pagada</span>
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 40px; color: #7f8c8d;">
+                        <i class="fas fa-check-circle" style="font-size: 48px; color: #5dd39e; margin-bottom: 15px; display: block;"></i>
+                        {% if tipo == 'vencidas' %}
+                        <strong>¡Excelente!</strong> No hay cuotas vencidas
+                        {% else %}
+                        <strong>Todo al día.</strong> No hay cuotas próximas a vencer en los próximos {{ dias|default:7 }} días
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal para Pago -->
+<div id="pagoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
+            <button onclick="closeModal('pagoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+        </div>
+        <div id="pagoModalBody" style="padding: 20px;">
+            <!-- El formulario se cargará aquí -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function loadPagoForm(url) {
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+            $('#pagoModalBody').html(data);
+            $('#pagoModal').css('display', 'flex');
+        }
+    });
+}
+
+function closeModal(modalId) {
+    $('#' + modalId).css('display', 'none');
+}
+
+// Auto-submit del formulario al cambiar el filtro de días
+$(document).ready(function() {
+    $('#diasFilter').on('change', function() {
+        $('#filterForm').submit();
+    });
+});
+</script>
+{% endblock %}

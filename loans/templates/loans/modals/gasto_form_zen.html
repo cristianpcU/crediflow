@@ -1,0 +1,75 @@
+{% load widget_tweaks %}
+
+<form id="gastoForm" method="post" action="">
+    {% csrf_token %}
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-tag" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.nombre.label }}</label>
+        {% render_field form.nombre class="zen-form-control" placeholder="Ej: Seguro, Comisión" %}
+        {% if form.nombre.errors %}
+            <div class="zen-form-error">{{ form.nombre.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-dollar-sign" style="color: #f7b731; margin-right: 5px;"></i> {{ form.monto.label }}</label>
+        {% render_field form.monto class="zen-form-control" placeholder="0.00" %}
+        {% if form.monto.errors %}
+            <div class="zen-form-error">{{ form.monto.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-align-left" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.descripcion.label }}</label>
+        {% render_field form.descripcion class="zen-form-control" rows="2" placeholder="Descripción (opcional)" %}
+        {% if form.descripcion.errors %}
+            <div class="zen-form-error">{{ form.descripcion.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
+        <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('gastoModal')">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="zen-btn zen-btn-primary">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+    </div>
+</form>
+
+<script>
+$(document).on('submit', '#gastoForm', function(e) {
+    e.preventDefault();
+    
+    var $form = $(this);
+    var formUrl = $form.attr('action') || window.gastoFormUrl;
+    
+    $('.zen-form-error').remove();
+    $('.zen-form-control').css('border-color', '#e8ecef');
+    
+    $.ajax({
+        url: formUrl,
+        type: 'POST',
+        data: $form.serialize(),
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        success: function(response) {
+            if (response.success) {
+                closeModal('gastoModal');
+                location.reload();
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 400) {
+                var errors = xhr.responseJSON.errors;
+                for (var field in errors) {
+                    var input = $('#id_' + field);
+                    input.css('border-color', '#ee5a6f');
+                    input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
+                }
+            } else {
+                alert('Error al guardar. Por favor intente nuevamente.');
+            }
+        }
+    });
+});
+</script>

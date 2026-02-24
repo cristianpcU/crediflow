@@ -1,0 +1,274 @@
+{% extends 'loans/base_zen.html' %}
+{% load static %}
+
+{% block title %}{{ cliente }} - CrediFlow{% endblock %}
+
+{% block breadcrumb %}
+<span>/</span>
+<span>{{ cliente.nombres }} {{ cliente.apellidos }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="zen-page-header">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div style="flex: 1; min-width: 200px;">
+            <h1 class="zen-page-title">{{ cliente.nombres }} {{ cliente.apellidos }}</h1>
+            <p class="zen-page-subtitle">Información completa del cliente</p>
+        </div>
+        <a href="{% url 'loans:cliente-list' %}" class="zen-btn zen-btn-outline hide-mobile">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+    
+    <div class="cliente-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+        <button type="button" class="zen-btn zen-btn-primary" onclick="loadClienteForm('{% url 'loans:cliente-update' cliente.pk %}')" style="flex: 1; min-width: 150px;">
+            <i class="fas fa-edit"></i> <span>Editar Cliente</span>
+        </button>
+        <button type="button" class="zen-btn zen-btn-outline show-mobile" onclick="window.history.back()" style="flex: 1; min-width: 150px;">
+            <i class="fas fa-arrow-left"></i> <span>Volver</span>
+        </button>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+    <!-- Información del Cliente -->
+    <div class="zen-card">
+        <div class="zen-card-header">
+            <h3 class="zen-card-title">
+                <i class="fas fa-user"></i> Información Personal
+            </h3>
+        </div>
+        <div class="zen-card-body">
+            <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #e8ecef; margin-bottom: 20px;">
+                <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #5b9bd5 0%, #4a8bc2 100%); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; font-weight: 600;">
+                    {{ cliente.nombres.0 }}{{ cliente.apellidos.0 }}
+                </div>
+                <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 600; color: #2c3e50;">
+                    {{ cliente.nombres }} {{ cliente.apellidos }}
+                </h3>
+                <p style="margin: 0; color: #7f8c8d; font-size: 14px;">
+                    {% if cliente.activo %}
+                    <span class="zen-badge success">Cliente Activo</span>
+                    {% else %}
+                    <span class="zen-badge">Inactivo</span>
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">
+                    <i class="fas fa-id-card"></i> Cédula
+                </label>
+                <p style="margin: 0; font-weight: 600; color: #2c3e50;">{{ cliente.cedula }}</p>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">
+                    <i class="fas fa-phone"></i> Teléfono
+                </label>
+                <p style="margin: 0; font-weight: 600; color: #2c3e50;">
+                    <a href="tel:{{ cliente.telefono }}" style="color: #5b9bd5; text-decoration: none;">
+                        {{ cliente.telefono }}
+                    </a>
+                </p>
+            </div>
+            
+            {% if cliente.email %}
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <p style="margin: 0; font-weight: 600; color: #2c3e50;">
+                    <a href="mailto:{{ cliente.email }}" style="color: #5b9bd5; text-decoration: none;">
+                        {{ cliente.email }}
+                    </a>
+                </p>
+            </div>
+            {% endif %}
+            
+            {% if cliente.direccion %}
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">
+                    <i class="fas fa-map-marker-alt"></i> Dirección
+                </label>
+                <p style="margin: 0; color: #2c3e50;">{{ cliente.direccion }}</p>
+            </div>
+            {% endif %}
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
+                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;">
+                    <i class="fas fa-calendar"></i> Fecha de Registro
+                </label>
+                <p style="margin: 0; color: #7f8c8d; font-size: 14px;">{{ cliente.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Préstamos del Cliente -->
+    <div class="zen-card">
+        <div class="zen-card-header">
+            <h3 class="zen-card-title">
+                <i class="fas fa-file-invoice-dollar"></i> Préstamos del Cliente
+            </h3>
+            <button type="button" class="zen-btn zen-btn-primary" onclick="loadPrestamoForm('{% url 'loans:prestamo-create' %}?cliente={{ cliente.id }}')" style="padding: 6px 12px; font-size: 13px;">
+                <i class="fas fa-plus"></i> Nuevo Préstamo
+            </button>
+        </div>
+        <div class="zen-card-body" style="padding: 0;">
+            {% if prestamos %}
+            <table class="zen-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Monto</th>
+                        <th>Tasa %</th>
+                        <th>Meses</th>
+                        <th>Fecha Inicio</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prestamo in prestamos %}
+                    <tr>
+                        <td style="font-weight: 600; color: #5b9bd5;">#{{ prestamo.id }}</td>
+                        <td style="font-weight: 600;">${{ prestamo.monto_principal|floatformat:2 }}</td>
+                        <td>{{ prestamo.tasa_interes_mensual }}%</td>
+                        <td>{{ prestamo.duracion_meses }}</td>
+                        <td style="color: #7f8c8d;">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if prestamo.estado == 'ACTIVO' %}
+                            <span class="zen-badge success">{{ prestamo.get_estado_display }}</span>
+                            {% elif prestamo.estado == 'LIQUIDADO' %}
+                            <span class="zen-badge info">{{ prestamo.get_estado_display }}</span>
+                            {% else %}
+                            <span class="zen-badge">{{ prestamo.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'loans:prestamo-detail' prestamo.pk %}" class="zen-btn zen-btn-primary" style="padding: 6px 12px; font-size: 12px;">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px; color: #7f8c8d;">
+                <i class="fas fa-inbox" style="font-size: 48px; color: #e8ecef; margin-bottom: 15px; display: block;"></i>
+                <p style="margin: 0 0 20px 0; font-size: 16px;">Este cliente aún no tiene préstamos registrados</p>
+                <button type="button" class="zen-btn zen-btn-primary" onclick="loadPrestamoForm('{% url 'loans:prestamo-create' %}?cliente={{ cliente.id }}')">
+                    <i class="fas fa-plus"></i> Crear Primer Préstamo
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Cliente -->
+<div id="clienteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-user-edit"></i> Editar Cliente</h3>
+            <button onclick="closeModal('clienteModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+        </div>
+        <div id="clienteModalBody" style="padding: 20px;">
+            <!-- El formulario se cargará aquí -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Préstamo -->
+<div id="prestamoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-file-invoice-dollar"></i> Nuevo Préstamo</h3>
+            <button onclick="closeModal('prestamoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+        </div>
+        <div id="prestamoModalBody" style="padding: 20px;">
+            <!-- El formulario se cargará aquí -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+function loadClienteForm(url) {
+    // Guardar la URL para el submit del formulario
+    window.clienteFormUrl = url;
+    
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+            $('#clienteModalBody').html(data);
+            $('#clienteModal').css('display', 'flex');
+        },
+        error: function(xhr) {
+            alert('Error al cargar el formulario. Por favor intente nuevamente.');
+        }
+    });
+}
+
+var prestamoFormUrl = '';
+
+function loadPrestamoForm(url) {
+    prestamoFormUrl = url;
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+            $('#prestamoModalBody').html(data);
+            $('#prestamoModal').css('display', 'flex');
+        },
+        error: function() {
+            alert('Error al cargar el formulario');
+        }
+    });
+}
+
+// Delegación de eventos para el formulario de préstamo
+$(document).on('submit', '#prestamoForm', function(e) {
+    e.preventDefault();
+    
+    // Limpiar errores previos
+    $('.zen-form-error').remove();
+    $('.zen-form-control').css('border-color', '#e8ecef');
+    
+    $.ajax({
+        url: prestamoFormUrl,
+        type: 'POST',
+        data: $(this).serialize(),
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        success: function(response) {
+            if (response.success) {
+                closeModal('prestamoModal');
+                location.reload();
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 400) {
+                var errors = xhr.responseJSON.errors;
+                for (var field in errors) {
+                    var input = $('#id_' + field);
+                    input.css('border-color', '#ee5a6f');
+                    input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
+                }
+            } else {
+                alert('Error al guardar el préstamo');
+            }
+        }
+    });
+});
+
+function closeModal(modalId) {
+    $('#' + modalId).css('display', 'none');
+}
+</script>
+{% endblock %}

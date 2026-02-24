@@ -1,0 +1,91 @@
+{% load widget_tweaks %}
+
+<form id="prestamoForm" method="post" action="">
+    {% csrf_token %}
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-user-tie" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.cliente.label }}</label>
+        {% render_field form.cliente class="zen-form-control zen-select2" %}
+        {% if form.cliente.errors %}
+            <div class="zen-form-error">{{ form.cliente.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-dollar-sign" style="color: #5dd39e; margin-right: 5px;"></i> {{ form.monto_principal.label }}</label>
+            {% render_field form.monto_principal class="zen-form-control" placeholder="1000.00" %}
+            {% if form.monto_principal.errors %}
+                <div class="zen-form-error">{{ form.monto_principal.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-percentage" style="color: #f7b731; margin-right: 5px;"></i> {{ form.tasa_interes_mensual.label }}</label>
+            {% render_field form.tasa_interes_mensual class="zen-form-control" placeholder="5.00" %}
+            {% if form.tasa_interes_mensual.errors %}
+                <div class="zen-form-error">{{ form.tasa_interes_mensual.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-calendar-alt" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.duracion_meses.label }}</label>
+            {% render_field form.duracion_meses class="zen-form-control" placeholder="12" %}
+            {% if form.duracion_meses.errors %}
+                <div class="zen-form-error">{{ form.duracion_meses.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="zen-form-group">
+            <label class="zen-form-label"><i class="fas fa-calendar-check" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.fecha_inicio.label }}</label>
+            {% render_field form.fecha_inicio class="zen-form-control" %}
+            {% if form.fecha_inicio.errors %}
+                <div class="zen-form-error">{{ form.fecha_inicio.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="zen-form-group">
+        <label class="zen-form-label"><i class="fas fa-sticky-note" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.notas.label }}</label>
+        {% render_field form.notas class="zen-form-control" rows="3" placeholder="Notas adicionales (opcional)" %}
+        {% if form.notas.errors %}
+            <div class="zen-form-error">{{ form.notas.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    {% if form.instance.pk %}
+    <div style="margin-bottom: 15px; padding: 12px; background: #fff3cd; border-left: 4px solid #f7b731; border-radius: 4px;">
+        <p style="margin: 0; color: #856404; font-size: 13px;">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Advertencia:</strong> Al editar el préstamo, todas las cuotas existentes se eliminarán y se recalcularán automáticamente con los nuevos valores.
+        </p>
+    </div>
+    {% else %}
+    <div style="margin-bottom: 15px; padding: 12px; background: #e3f2fd; border-left: 4px solid #5b9bd5; border-radius: 4px;">
+        <p style="margin: 0; color: #1976d2; font-size: 13px;">
+            <i class="fas fa-info-circle"></i> <strong>Nota:</strong> Los gastos adicionales se pueden agregar después de crear el préstamo desde la página de detalles.
+        </p>
+    </div>
+    {% endif %}
+    
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
+        <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('prestamoModal')">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button type="submit" class="zen-btn zen-btn-primary">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    // Inicializar Select2 para el campo de cliente
+    $('.zen-select2').select2({
+        dropdownParent: $('#prestamoModal'),
+        placeholder: 'Seleccione un cliente',
+        width: '100%'
+    });
+});
+</script>

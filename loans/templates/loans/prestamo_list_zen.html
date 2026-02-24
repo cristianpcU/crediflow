@@ -1,0 +1,176 @@
+{% extends 'loans/base_zen.html' %}
+{% load static %}
+
+{% block title %}Préstamos - CrediFlow{% endblock %}
+
+{% block breadcrumb %}
+<span>/</span>
+<span>Préstamos</span>
+{% endblock %}
+
+{% block content %}
+<div class="zen-page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h1 class="zen-page-title">Préstamos</h1>
+        <p class="zen-page-subtitle">Gestión de préstamos del sistema</p>
+    </div>
+    <button type="button" class="zen-btn zen-btn-primary" onclick="loadPrestamoForm('{% url 'loans:prestamo-create' %}')">
+        <i class="fas fa-plus"></i> Nuevo Préstamo
+    </button>
+</div>
+
+<!-- Filtros -->
+<div class="zen-card">
+    <div class="zen-card-body">
+        <form id="filterForm" method="get" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <select name="estado" id="estadoFilter" class="zen-search" style="width: 100%; padding: 10px 15px; border: 1px solid #e8ecef; border-radius: 6px;">
+                    <option value="">Todos los estados</option>
+                    <option value="ACTIVO" {% if request.GET.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                    <option value="LIQUIDADO" {% if request.GET.estado == 'LIQUIDADO' %}selected{% endif %}>Liquidado</option>
+                    <option value="CANCELADO" {% if request.GET.estado == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Préstamos -->
+<div class="zen-card">
+    <div class="zen-card-header">
+        <h3 class="zen-card-title">
+            <i class="fas fa-file-invoice-dollar"></i> Lista de Préstamos
+        </h3>
+    </div>
+    <div class="zen-card-body" style="padding: 0;">
+        <div class="zen-table-responsive">
+            <table class="zen-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Monto</th>
+                        <th class="hide-mobile">Tasa %</th>
+                        <th class="hide-mobile">Cuotas</th>
+                        <th class="hide-mobile">Fecha Inicio</th>
+                        <th class="hide-mobile">Estado</th>
+                        <th style="text-align: center;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prestamo in prestamos %}
+                    <tr>
+                        <td><strong>#{{ prestamo.id }}</strong></td>
+                        <td>{{ prestamo.cliente }}</td>
+                        <td><strong>${{ prestamo.monto_principal }}</strong></td>
+                        <td class="hide-mobile">{{ prestamo.tasa_interes_mensual }}%</td>
+                        <td class="hide-mobile">{{ prestamo.duracion_meses }}</td>
+                        <td class="hide-mobile">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td class="hide-mobile">
+                            {% if prestamo.estado == 'ACTIVO' %}
+                            <span class="zen-badge success">{{ prestamo.estado }}</span>
+                            {% elif prestamo.estado == 'LIQUIDADO' %}
+                            <span class="zen-badge info">{{ prestamo.estado }}</span>
+                            {% else %}
+                            <span class="zen-badge danger">{{ prestamo.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            <a href="{% url 'loans:prestamo-detail' prestamo.pk %}" class="zen-btn zen-btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                                <i class="fas fa-eye"></i> <span class="hide-mobile">Ver</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #7f8c8d;">No hay préstamos registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Préstamo -->
+<div id="prestamoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-file-invoice-dollar"></i> Préstamo</h3>
+            <button onclick="closeModal('prestamoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+        </div>
+        <div id="prestamoModalBody" style="padding: 20px;">
+            <!-- El formulario se cargará aquí -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+var prestamoFormUrl = '';
+
+// Auto-submit del formulario al cambiar el filtro de estado
+$(document).ready(function() {
+    $('#estadoFilter').on('change', function() {
+        $('#filterForm').submit();
+    });
+});
+
+function loadPrestamoForm(url) {
+    prestamoFormUrl = url;
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(data) {
+            $('#prestamoModalBody').html(data);
+            $('#prestamoModal').css('display', 'flex');
+        },
+        error: function() {
+            alert('Error al cargar el formulario');
+        }
+    });
+}
+
+function closeModal(modalId) {
+    $('#' + modalId).css('display', 'none');
+}
+
+// Delegación de eventos para el formulario de préstamo
+$(document).on('submit', '#prestamoForm', function(e) {
+    e.preventDefault();
+    
+    // Limpiar errores previos
+    $('.zen-form-error').remove();
+    $('.zen-form-control').css('border-color', '#e8ecef');
+    
+    $.ajax({
+        url: prestamoFormUrl,
+        type: 'POST',
+        data: $(this).serialize(),
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        success: function(response) {
+            if (response.success) {
+                closeModal('prestamoModal');
+                location.reload();
+            }
+        },
+        error: function(xhr) {
+            if (xhr.status === 400) {
+                var errors = xhr.responseJSON.errors;
+                for (var field in errors) {
+                    var input = $('#id_' + field);
+                    input.css('border-color', '#ee5a6f');
+                    input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
+                }
+            } else {
+                alert('Error al guardar el préstamo');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
