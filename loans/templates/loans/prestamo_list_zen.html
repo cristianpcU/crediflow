@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="zen-page-header" style="display: flex; justify-content: space-between; align-items: center;">
+<div class="zen-page-header d-flex justify-content-between align-items-center">
     <div>
         <h1 class="zen-page-title">Préstamos</h1>
         <p class="zen-page-subtitle">Gestión de préstamos del sistema</p>
@@ -22,9 +22,9 @@
 <!-- Filtros -->
 <div class="zen-card">
     <div class="zen-card-body">
-        <form id="filterForm" method="get" style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <select name="estado" id="estadoFilter" class="zen-search" style="width: 100%; padding: 10px 15px; border: 1px solid #e8ecef; border-radius: 6px;">
+        <form id="filterForm" method="get" class="filter-form">
+            <div class="filter-form-field">
+                <select name="estado" id="estadoFilter" class="filter-select">
                     <option value="">Todos los estados</option>
                     <option value="ACTIVO" {% if request.GET.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
                     <option value="LIQUIDADO" {% if request.GET.estado == 'LIQUIDADO' %}selected{% endif %}>Liquidado</option>
@@ -42,48 +42,57 @@
             <i class="fas fa-file-invoice-dollar"></i> Lista de Préstamos
         </h3>
     </div>
-    <div class="zen-card-body" style="padding: 0;">
+    <div class="zen-card-body p-0">
         <div class="zen-table-responsive">
-            <table class="zen-table">
+            <table class="zen-table zen-table-compact">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th >ID</th>
                         <th>Cliente</th>
-                        <th>Monto</th>
-                        <th class="hide-mobile">Tasa %</th>
-                        <th class="hide-mobile">Cuotas</th>
-                        <th class="hide-mobile">Fecha Inicio</th>
-                        <th class="hide-mobile">Estado</th>
-                        <th style="text-align: center;">Acciones</th>
+                        <th >Monto</th>
+                        <th >Condiciones</th>
+                        <th >Fecha Inicio</th>
+                        <th >Acciones</th>
+                        <th >
+                            Estado</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for prestamo in prestamos %}
                     <tr>
-                        <td><strong>#{{ prestamo.id }}</strong></td>
-                        <td>{{ prestamo.cliente }}</td>
-                        <td><strong>${{ prestamo.monto_principal }}</strong></td>
-                        <td class="hide-mobile">{{ prestamo.tasa_interes_mensual }}%</td>
-                        <td class="hide-mobile">{{ prestamo.duracion_meses }}</td>
-                        <td class="hide-mobile">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</td>
-                        <td class="hide-mobile">
-                            {% if prestamo.estado == 'ACTIVO' %}
-                            <span class="zen-badge success">{{ prestamo.estado }}</span>
-                            {% elif prestamo.estado == 'LIQUIDADO' %}
-                            <span class="zen-badge info">{{ prestamo.estado }}</span>
-                            {% else %}
-                            <span class="zen-badge danger">{{ prestamo.estado }}</span>
-                            {% endif %}
+                        <td><strong class="text-secondary">#{{ prestamo.id }}</strong></td>
+                        <td><strong>{{ prestamo.cliente }}</strong></td>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                <strong>${{ prestamo.monto_principal|floatformat:2 }}</strong>
+                                <small class="text-muted">Total: ${{ prestamo.monto_total|floatformat:2 }}</small>
+                            </div>
                         </td>
-                        <td style="text-align: center; white-space: nowrap;">
-                            <a href="{% url 'loans:prestamo-detail' prestamo.pk %}" class="zen-btn zen-btn-primary" style="padding: 8px 16px; font-size: 13px;">
-                                <i class="fas fa-eye"></i> <span class="hide-mobile">Ver</span>
+                        <td>
+                            <small class="text-muted d-block">{{ prestamo.tasa_interes_mensual }}% × {{ prestamo.duracion_meses }} meses</small>
+                        </td>
+                        <td class="text-muted">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'loans:prestamo-detail' prestamo.pk %}" class="zen-btn zen-btn-primary zen-btn-sm" title="Ver detalle">
+                                <i class="fas fa-eye"></i>
                             </a>
+                        </td>
+                        <td class="text-center">
+                            {% if prestamo.estado == 'ACTIVO' %}
+                            <i class="fas fa-circle-check status-icon status-icon-success" title="Activo"></i>
+                            {% elif prestamo.estado == 'LIQUIDADO' %}
+                            <i class="fas fa-circle-check status-icon status-icon-info" title="Liquidado"></i>
+                            {% else %}
+                            <i class="fas fa-circle-xmark status-icon status-icon-danger" title="Vencido"></i>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #7f8c8d;">No hay préstamos registrados</td>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-file-invoice-dollar empty-state-icon"></i>
+                            No hay préstamos registrados
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -93,13 +102,13 @@
 </div>
 
 <!-- Modal para Préstamo -->
-<div id="prestamoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-file-invoice-dollar"></i> Préstamo</h3>
-            <button onclick="closeModal('prestamoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+<div id="prestamoModal" class="zen-modal">
+    <div class="zen-modal-content">
+        <div class="zen-modal-header">
+            <h3 class="zen-modal-title"><i class="fas fa-file-invoice-dollar"></i> Préstamo</h3>
+            <button onclick="closeModal('prestamoModal')" class="zen-modal-close">&times;</button>
         </div>
-        <div id="prestamoModalBody" style="padding: 20px;">
+        <div id="prestamoModalBody" class="zen-modal-body">
             <!-- El formulario se cargará aquí -->
         </div>
     </div>

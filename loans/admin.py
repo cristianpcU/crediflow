@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Cliente, GastoAdicional, Prestamo, Cuota
+from .models import Cliente, GastoAdicional, Prestamo, Cuota, UserProfile
 
 
 class CuotaInline(admin.TabularInline):
@@ -170,6 +170,33 @@ class CuotaAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, f"Se actualizaron {count} cuota(s) a estado VENCIDO.")
     actualizar_estados.short_description = "Actualizar estados vencidos"
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'get_nombre_completo', 'rol', 'telefono', 'activo', 'fecha_creacion']
+    list_filter = ['rol', 'activo', 'fecha_creacion']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'telefono']
+    readonly_fields = ['fecha_creacion']
+    
+    fieldsets = (
+        ('Usuario', {
+            'fields': ('user',)
+        }),
+        ('Rol y Permisos', {
+            'fields': ('rol', 'activo')
+        }),
+        ('Información de Contacto', {
+            'fields': ('telefono',)
+        }),
+        ('Información del Sistema', {
+            'fields': ('fecha_creacion',)
+        }),
+    )
+    
+    def get_nombre_completo(self, obj):
+        return obj.user.get_full_name() or obj.user.username
+    get_nombre_completo.short_description = 'Nombre Completo'
 
 
 # Personalización del sitio admin

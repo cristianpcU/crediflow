@@ -170,6 +170,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Configuración de autenticación
+LOGIN_URL = 'loans:login'
+LOGIN_REDIRECT_URL = 'loans:dashboard'
+LOGOUT_REDIRECT_URL = 'loans:login'
+
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"

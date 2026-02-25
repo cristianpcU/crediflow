@@ -2,6 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, TemplateView, View
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
 from django.http import JsonResponse
@@ -12,8 +15,41 @@ from .forms import ClienteForm, PrestamoForm, CuotaPagoForm, GastoAdicionalForm,
 from .mixins import AjaxFormMixin
 
 
-class DashboardView(TemplateView):
+# Vistas de Autenticación
+def login_view(request):
+    """Vista de inicio de sesión"""
+    if request.user.is_authenticated:
+        return redirect('loans:dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'¡Bienvenido {user.get_full_name() or user.username}!')
+            
+            # Redirigir a la página solicitada o al dashboard
+            next_url = request.GET.get('next', 'loans:dashboard')
+            return redirect(next_url)
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    
+    return render(request, 'loans/login.html')
+
+
+def logout_view(request):
+    """Vista de cierre de sesión"""
+    logout(request)
+    messages.info(request, 'Has cerrado sesión exitosamente.')
+    return redirect('loans:login')
+
+
+class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'loans/dashboard_zen.html'
+    login_url = 'loans:login'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -32,7 +68,7 @@ class DashboardView(TemplateView):
         return context
 
 
-class ClienteListView(ListView):
+class ClienteListView(LoginRequiredMixin, ListView):
     model = Cliente
     template_name = 'loans/cliente_list_zen.html'
     context_object_name = 'clientes'
@@ -50,7 +86,7 @@ class ClienteListView(ListView):
         return queryset
 
 
-class ClienteDetailView(DetailView):
+class ClienteDetailView(LoginRequiredMixin, DetailView):
     model = Cliente
     template_name = 'loans/cliente_detail_zen.html'
     context_object_name = 'cliente'
@@ -61,21 +97,21 @@ class ClienteDetailView(DetailView):
         return context
 
 
-class ClienteCreateView(AjaxFormMixin, CreateView):
+class ClienteCreateView(LoginRequiredMixin, AjaxFormMixin, CreateView):
     model = Cliente
     form_class = ClienteForm
     template_name = 'loans/modals/cliente_form_zen.html'
     success_url = reverse_lazy('loans:cliente-list')
 
 
-class ClienteUpdateView(AjaxFormMixin, UpdateView):
+class ClienteUpdateView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
     model = Cliente
     form_class = ClienteForm
     template_name = 'loans/modals/cliente_form_zen.html'
     success_url = reverse_lazy('loans:cliente-list')
 
 
-class PrestamoListView(ListView):
+class PrestamoListView(LoginRequiredMixin, ListView):
     model = Prestamo
     template_name = 'loans/prestamo_list_zen.html'
     context_object_name = 'prestamos'
@@ -91,7 +127,7 @@ class PrestamoListView(ListView):
         return queryset
 
 
-class PrestamoDetailView(DetailView):
+class PrestamoDetailView(LoginRequiredMixin, DetailView):
     model = Prestamo
     template_name = 'loans/prestamo_detail_zen.html'
     context_object_name = 'prestamo'
@@ -102,7 +138,7 @@ class PrestamoDetailView(DetailView):
         return context
 
 
-class PrestamoCreateView(AjaxFormMixin, CreateView):
+class PrestamoCreateView(LoginRequiredMixin, AjaxFormMixin, CreateView):
     model = Prestamo
     form_class = PrestamoForm
     template_name = 'loans/modals/prestamo_form_zen.html'
@@ -115,7 +151,7 @@ class PrestamoCreateView(AjaxFormMixin, CreateView):
         return response
 
 
-class PrestamoUpdateView(AjaxFormMixin, UpdateView):
+class PrestamoUpdateView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
     model = Prestamo
     form_class = PrestamoForm
     template_name = 'loans/modals/prestamo_form_zen.html'
@@ -150,7 +186,7 @@ class PrestamoDeleteView(View):
         return redirect('loans:prestamo-list')
 
 
-class CuotasProximasView(ListView):
+class CuotasProximasView(LoginRequiredMixin, ListView):
     model = Cuota
     template_name = 'loans/cuotas_vencimientos_zen.html'
     context_object_name = 'cuotas'
@@ -167,7 +203,7 @@ class CuotasProximasView(ListView):
         return context
 
 
-class CuotasVencidasView(ListView):
+class CuotasVencidasView(LoginRequiredMixin, ListView):
     model = Cuota
     template_name = 'loans/cuotas_vencimientos_zen.html'
     context_object_name = 'cuotas'
@@ -182,7 +218,7 @@ class CuotasVencidasView(ListView):
         return context
 
 
-class CuotaPagoView(AjaxFormMixin, UpdateView):
+class CuotaPagoView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
     model = Cuota
     form_class = CuotaPagoForm
     template_name = 'loans/modals/cuota_pago_form_zen.html'
@@ -195,14 +231,14 @@ class CuotaPagoView(AjaxFormMixin, UpdateView):
         return super().form_valid(form)
 
 
-class GastoAdicionalCreateView(AjaxFormMixin, CreateView):
+class GastoAdicionalCreateView(LoginRequiredMixin, AjaxFormMixin, CreateView):
     model = GastoAdicional
     form_class = GastoAdicionalForm
     template_name = 'loans/modals/gasto_form_zen.html'
     success_url = reverse_lazy('loans:prestamo-list')
 
 
-class PrestamoGastosUpdateView(AjaxFormMixin, UpdateView):
+class PrestamoGastosUpdateView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
     model = Prestamo
     form_class = PrestamoGastosForm
     template_name = 'loans/modals/prestamo_gastos_form_zen.html'

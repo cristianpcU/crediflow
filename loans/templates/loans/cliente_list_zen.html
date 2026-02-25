@@ -1,146 +1,197 @@
-{% extends 'loans/base_zen.html' %}
-{% load static %}
-
-{% block title %}Clientes - CrediFlow{% endblock %}
-
-{% block breadcrumb %}
+{% extends 'loans/base_zen.html' %} {% load static %} {% block title %}Clientes
+- CrediFlow{% endblock %} {% block breadcrumb %}
 <span>/</span>
 <span>Clientes</span>
-{% endblock %}
-
-{% block content %}
-<div class="zen-page-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <div>
-        <h1 class="zen-page-title">Clientes</h1>
-        <p class="zen-page-subtitle">Gestión de clientes del sistema</p>
-    </div>
-    <button type="button" class="zen-btn zen-btn-primary" onclick="loadClienteForm('{% url 'loans:cliente-create' %}')">
-        <i class="fas fa-plus"></i> Nuevo Cliente
-    </button>
+{% endblock %} {% block content %}
+<div class="zen-page-header d-flex justify-content-between align-items-center">
+  <div>
+    <h1 class="zen-page-title">Clientes</h1>
+    <p class="zen-page-subtitle">Gestión de clientes del sistema</p>
+  </div>
+  <button
+    type="button"
+    class="zen-btn zen-btn-primary"
+    onclick="loadClienteForm('{% url 'loans:cliente-create' %}')"
+  >
+    <i class="fas fa-plus"></i> Nuevo Cliente
+  </button>
 </div>
 
 <!-- Búsqueda -->
 <div class="zen-card">
-    <div class="zen-card-body">
-        <form method="get" style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <input type="text" name="search" class="zen-search" placeholder="Buscar por nombre, apellido o cédula..." value="{{ request.GET.search }}" style="width: 100%; padding: 10px 15px; border: 1px solid #e8ecef; border-radius: 6px;">
-            </div>
-            <button type="submit" class="zen-btn zen-btn-primary">
-                <i class="fas fa-search"></i> Buscar
-            </button>
-        </form>
-    </div>
+  <div class="zen-card-body">
+    <form method="get" class="d-flex gap-2">
+      <div class="flex-grow-1">
+        <input
+          type="text"
+          name="search"
+          class="zen-search"
+          placeholder="Buscar por nombre, apellido o cédula..."
+          value="{{ request.GET.search }}"
+        />
+      </div>
+      <button type="submit" class="zen-btn zen-btn-primary">
+        <i class="fas fa-search"></i> Buscar
+      </button>
+    </form>
+  </div>
 </div>
 
 <!-- Tabla de Clientes -->
 <div class="zen-card">
-    <div class="zen-card-header">
-        <h3 class="zen-card-title">
-            <i class="fas fa-users"></i> Lista de Clientes
-        </h3>
+  <div class="zen-card-header">
+    <h3 class="zen-card-title">
+      <i class="fas fa-users"></i> Lista de Clientes
+    </h3>
+  </div>
+  <div class="zen-card-body p-0">
+    <div class="zen-table-responsive">
+      <table class="zen-table zen-table-compact">
+        <thead>
+          <tr>
+            <th class="text-center">Estado</th>
+            <th>Cédula</th>
+            <th>Nombre Completo</th>
+            <th><i class="fas fa-phone font-size-sm"></i> Teléfono</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cliente in clientes %}
+          <tr>
+            <td class="text-center">
+              {% if cliente.activo %}
+              <i
+                class="fas fa-circle-check status-icon status-icon-success"
+                title="Activo"
+              ></i>
+              {% else %}
+              <i
+                class="fas fa-circle-xmark status-icon status-icon-danger"
+                title="Inactivo"
+              ></i>
+              {% endif %}
+            </td>
+            <td>
+              <strong class="font-size-md">{{ cliente.cedula }}</strong>
+            </td>
+            <td>
+              <div class="d-flex flex-column gap-1">
+                <strong class="font-size-md"
+                  >{{ cliente.nombres }} {{ cliente.apellidos }}</strong
+                >
+                <small class="text-muted">
+                  <i class="fas fa-envelope font-size-sm"></i>
+                  {{cliente.email|default:"Sin email" }}
+                </small>
+              </div>
+            </td>
+            <td>
+              <i class="fas fa-phone text-muted font-size-sm"></i>
+              <span>{{ cliente.telefono }}</span>
+            </td>
+            <td class="text-center">
+              <a
+                href="{% url 'loans:cliente-detail' cliente.pk %}"
+                class="zen-btn zen-btn-primary zen-btn-sm"
+                title="Ver detalle"
+              >
+                <i class="fas fa-eye"></i>
+              </a>
+              <button
+                type="button"
+                class="zen-btn zen-btn-outline zen-btn-sm"
+                onclick="loadClienteForm('{% url 'loans:cliente-update' cliente.pk %}')"
+                title="Editar"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="empty-state">
+              <i class="fas fa-users empty-state-icon"></i>
+              No hay clientes registrados
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="zen-card-body" style="padding: 0;">
-        <div class="zen-table-responsive">
-            <table class="zen-table">
-                <thead>
-                    <tr>
-                        <th>Cédula</th>
-                        <th>Nombres</th>
-                        <th>Apellidos</th>
-                        <th>Teléfono</th>
-                        <th class="hide-mobile">Email</th>
-                        <th class="hide-mobile">Estado</th>
-                        <th style="text-align: center;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cliente in clientes %}
-                    <tr>
-                        <td><strong>{{ cliente.cedula }}</strong></td>
-                        <td>{{ cliente.nombres }}</td>
-                        <td>{{ cliente.apellidos }}</td>
-                        <td>{{ cliente.telefono }}</td>
-                        <td class="hide-mobile" style="color: #7f8c8d;">{{ cliente.email|default:"-" }}</td>
-                        <td class="hide-mobile">
-                            {% if cliente.activo %}
-                            <span class="zen-badge success">Activo</span>
-                            {% else %}
-                            <span class="zen-badge">Inactivo</span>
-                            {% endif %}
-                        </td>
-                        <td style="white-space: nowrap;">
-                            <a href="{% url 'loans:cliente-detail' cliente.pk %}" class="zen-btn zen-btn-primary" style="padding: 8px 12px; font-size: 13px; margin-right: 5px;">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <button type="button" class="zen-btn zen-btn-outline" onclick="loadClienteForm('{% url 'loans:cliente-update' cliente.pk %}')" style="padding: 8px 12px; font-size: 13px;">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 40px; color: #7f8c8d;">No hay clientes registrados</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+  </div>
 </div>
 
 <!-- Paginación -->
 {% if is_paginated %}
-<div style="display: flex; justify-content: center; margin-top: 20px; gap: 10px;">
-    {% if page_obj.has_previous %}
-    <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="zen-btn zen-btn-outline">Primera</a>
-    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="zen-btn zen-btn-outline">Anterior</a>
-    {% endif %}
-    
-    <span class="zen-btn" style="background: #f5f7fa; cursor: default;">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-    
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="zen-btn zen-btn-outline">Siguiente</a>
-    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="zen-btn zen-btn-outline">Última</a>
-    {% endif %}
+<div class="pagination">
+  {% if page_obj.has_previous %}
+  <a
+    href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+    class="zen-btn zen-btn-outline"
+    >Primera</a
+  >
+  <a
+    href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+    class="zen-btn zen-btn-outline"
+    >Anterior</a
+  >
+  {% endif %}
+
+  <span class="zen-btn pagination-current"
+    >{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span
+  >
+
+  {% if page_obj.has_next %}
+  <a
+    href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+    class="zen-btn zen-btn-outline"
+    >Siguiente</a
+  >
+  <a
+    href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+    class="zen-btn zen-btn-outline"
+    >Última</a
+  >
+  {% endif %}
 </div>
 {% endif %}
 
 <!-- Modal para Cliente -->
-<div id="clienteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-user"></i> Cliente</h3>
-            <button onclick="closeModal('clienteModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
-        </div>
-        <div id="clienteModalBody" style="padding: 20px;">
-            <!-- El formulario se cargará aquí -->
-        </div>
+<div id="clienteModal" class="zen-modal">
+  <div class="zen-modal-content">
+    <div class="zen-modal-header">
+      <h3 class="zen-modal-title"><i class="fas fa-user"></i> Cliente</h3>
+      <button onclick="closeModal('clienteModal')" class="zen-modal-close">
+        &times;
+      </button>
     </div>
+    <div id="clienteModalBody" class="zen-modal-body">
+      <!-- El formulario se cargará aquí -->
+    </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-function loadClienteForm(url) {
+  function loadClienteForm(url) {
     // Guardar la URL para el submit del formulario
     window.clienteFormUrl = url;
-    
-    $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(data) {
-            $('#clienteModalBody').html(data);
-            $('#clienteModal').css('display', 'flex');
-        },
-        error: function(xhr) {
-            alert('Error al cargar el formulario. Por favor intente nuevamente.');
-        }
-    });
-}
 
-function closeModal(modalId) {
-    $('#' + modalId).css('display', 'none');
-}
+    $.ajax({
+      url: url,
+      type: "GET",
+      success: function (data) {
+        $("#clienteModalBody").html(data);
+        $("#clienteModal").css("display", "flex");
+      },
+      error: function (xhr) {
+        alert("Error al cargar el formulario. Por favor intente nuevamente.");
+      },
+    });
+  }
+
+  function closeModal(modalId) {
+    $("#" + modalId).css("display", "none");
+  }
 </script>
 {% endblock %}

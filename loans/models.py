@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from datetime import timedelta
 from decimal import Decimal
 
@@ -238,3 +241,52 @@ class Cuota(models.Model):
 
     def esta_vencida(self):
         return self.fecha_vencimiento < timezone.now().date() and self.estado != 'PAGADO'
+
+
+class UserProfile(models.Model):
+    """Perfil de usuario con información adicional y rol"""
+    
+    ROL_CHOICES = [
+        ('ADMINISTRADOR', 'Administrador'),
+        ('GERENTE', 'Gerente'),
+        ('CAJERO', 'Cajero'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    rol = models.CharField(max_length=20, choices=ROL_CHOICES, default='CAJERO', verbose_name='Rol')
+    telefono = models.CharField(max_length=15, blank=True, verbose_name='Teléfono')
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Creación')
+    
+    class Meta:
+        verbose_name = 'Perfil de Usuario'
+        verbose_name_plural = 'Perfiles de Usuario'
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_rol_display()}"
+    
+    def tiene_permiso(self, permiso):
+        """Verifica si el usuario tiene un permiso específico basado en su rol"""
+        permisos_por_rol = {
+            'ADMINISTRADOR': ['all'],  # Acceso total
+            'GERENTE': [
+                'ver_dashboard', 'crear_cliente', 'editar_cliente', 'ver_cliente',
+                'crear_prestamo', 'editar_prestamo', 'ver_prestamo', 
+                'registrar_pago', 'ver_cuotas', 'eliminar_cliente', 'eliminar_prestamo'
+            ],
+            'CAJERO': [
+                'ver_dashboard_limitado', 'ver_cliente', 'ver_prestamo', 
+                'registrar_pago', 'ver_cuotas'
+            ],
+        }
+        
+        permisos = permisos_por_rol.get(self.rol, [])
+        return 'all' in permisos or permiso in permisos
+
+
+@receiver(post_save, sender=User)
+def crear_perfil_usuario(sender, instance, created, **kwargs):
+    """Crear perfil automáticamente cuando se crea un usuario"""
+    if created:
+        UserProfile.objects.create(user=instance)

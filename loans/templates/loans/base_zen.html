@@ -1,177 +1,232 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>{% block title %}CrediFlow - Sistema de Préstamos{% endblock %}</title>
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>
+      {% block title %}CrediFlow - Sistema de Préstamos{% endblock %}
+    </title>
+
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <!-- Zen Theme CSS -->
-    <link rel="stylesheet" href="{% static 'loans/css/zen-theme.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'loans/css/zen-theme.css' %}" />
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block extra_css %}{% endblock %}
-</head>
-<body>
+  </head>
+  <body>
     <!-- Mobile Toggle Button -->
     <button class="zen-mobile-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
+      <i class="fas fa-bars"></i>
     </button>
-    
+
     <!-- Sidebar Overlay for Mobile -->
     <div class="zen-sidebar-overlay"></div>
-    
+
     <div class="zen-layout">
-        <!-- Sidebar -->
-        <aside class="zen-sidebar" id="sidebar">
-            <div class="zen-sidebar-header">
-                <a href="{% url 'loans:dashboard' %}" class="zen-logo">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <span>CrediFlow</span>
-                </a>
-            </div>
-            
-            <nav class="zen-nav">
-                <div class="zen-nav-section">
-                    <div class="zen-nav-title">Principal</div>
-                    <a href="{% url 'loans:dashboard' %}" class="zen-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
+      <!-- Sidebar -->
+      <aside class="zen-sidebar" id="sidebar">
+        <div class="zen-sidebar-header">
+          <div class="zen-logo">
+            <i class="fas fa-hand-holding-dollar"></i>
+            <span>CrediFlow</span>
+          </div>
+
+          <!-- Información del usuario -->
+          <div class="user-profile-card">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <i class="fas fa-user-circle user-profile-icon"></i>
+              <div class="flex-grow-1">
+                <div class="user-profile-name">
+                  {{ request.user.get_full_name|default:request.user.username }}
                 </div>
-                
-                <div class="zen-nav-section">
-                    <div class="zen-nav-title">Gestión</div>
-                    <a href="{% url 'loans:cliente-list' %}" class="zen-nav-item {% if 'cliente' in request.path %}active{% endif %}">
-                        <i class="fas fa-users"></i>
-                        <span>Clientes</span>
-                    </a>
-                    <a href="{% url 'loans:prestamo-list' %}" class="zen-nav-item {% if 'prestamo' in request.path %}active{% endif %}">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <span>Préstamos</span>
-                    </a>
+                {% if request.user.profile %}
+                <div class="user-profile-role">
+                  <i class="fas fa-shield-alt font-size-sm"></i>
+                  {{request.user.profile.get_rol_display }}
                 </div>
-                
-                <div class="zen-nav-section">
-                    <div class="zen-nav-title">Cuotas</div>
-                    <a href="{% url 'loans:cuotas-proximas' %}" class="zen-nav-item">
-                        <i class="fas fa-clock"></i>
-                        <span>Próximas a Vencer</span>
-                        <span class="zen-nav-badge badge-new">NEW</span>
-                    </a>
-                    <a href="{% url 'loans:cuotas-vencidas' %}" class="zen-nav-item">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>Vencidas</span>
-                        <span class="zen-nav-badge badge-hot">HOT</span>
-                    </a>
-                </div>
-                
-                <div class="zen-nav-section">
-                    <div class="zen-nav-title">Sistema</div>
-                    <a href="/admin/" class="zen-nav-item">
-                        <i class="fas fa-cog"></i>
-                        <span>Administración</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="zen-main">
-            <!-- Header -->
-            <header class="zen-header">
-                <div class="zen-header-left">
-                    <div class="zen-search">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Buscar clientes, préstamos...">
-                    </div>
-                </div>
-                
-                <div class="zen-header-right">
-                    <div class="zen-header-icon">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
-                    <div class="zen-header-icon">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="zen-user">
-                        <div class="zen-user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <span class="zen-user-name">Admin</span>
-                        <i class="fas fa-chevron-down" style="font-size: 10px; color: #7f8c8d;"></i>
-                    </div>
-                </div>
-            </header>
-            
-            <!-- Content -->
-            <div class="zen-content">
-                <!-- Breadcrumb -->
-                <div class="zen-breadcrumb">
-                    <i class="fas fa-home"></i>
-                    <span>/</span>
-                    <a href="{% url 'loans:dashboard' %}">Dashboard</a>
-                    {% block breadcrumb %}{% endblock %}
-                </div>
-                
-                <!-- Messages -->
-                {% if messages %}
-                    {% for message in messages %}
-                    <div class="zen-card" style="border-left: 4px solid {% if message.tags == 'success' %}#5dd39e{% elif message.tags == 'error' %}#ee5a6f{% else %}#5b9bd5{% endif %}; margin-bottom: 20px;">
-                        <div class="zen-card-body">
-                            {{ message }}
-                        </div>
-                    </div>
-                    {% endfor %}
                 {% endif %}
-                
-                <!-- Page Content -->
-                {% block content %}{% endblock %}
+              </div>
             </div>
-        </main>
+          </div>
+        </div>
+
+        <nav class="zen-nav">
+          <div class="zen-nav-section">
+            <div class="zen-nav-title">Principal</div>
+            <a
+              href="{% url 'loans:dashboard' %}"
+              class="zen-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            >
+              <i class="fas fa-tachometer-alt"></i>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <div class="zen-nav-section">
+            <div class="zen-nav-title">Gestión</div>
+            <a
+              href="{% url 'loans:cliente-list' %}"
+              class="zen-nav-item {% if 'cliente' in request.path %}active{% endif %}"
+            >
+              <i class="fas fa-users"></i>
+              <span>Clientes</span>
+            </a>
+            <a
+              href="{% url 'loans:prestamo-list' %}"
+              class="zen-nav-item {% if 'prestamo' in request.path %}active{% endif %}"
+            >
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Préstamos</span>
+            </a>
+          </div>
+
+          <div class="zen-nav-section">
+            <div class="zen-nav-title">Cuotas</div>
+            <a href="{% url 'loans:cuotas-proximas' %}" class="zen-nav-item">
+              <i class="fas fa-clock"></i>
+              <span>Próximas a Vencer</span>
+              <span class="zen-nav-badge badge-new">NEW</span>
+            </a>
+            <a
+              href="{% url 'loans:cuotas-vencidas' %}"
+              class="zen-nav-item {% if request.path == '/cuotas/vencidas/' %}active{% endif %}"
+            >
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Cuotas Vencidas</span>
+            </a>
+
+            <div
+              class="mt-4 pt-4"
+              style="border-top: 1px solid rgba(255, 255, 255, 0.1)"
+            >
+              <a
+                href="{% url 'loans:logout' %}"
+                class="zen-nav-item text-danger"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="zen-nav-section">
+            <div class="zen-nav-title">Sistema</div>
+            <a href="/admin/" class="zen-nav-item">
+              <i class="fas fa-cog"></i>
+              <span>Administración</span>
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="zen-main">
+        <!-- Header -->
+        <header class="zen-header">
+          <div class="zen-header-left">
+            <div class="zen-search">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Buscar clientes, préstamos..." />
+            </div>
+          </div>
+
+          <div class="zen-header-right">
+            <div class="zen-header-icon">
+              <i class="fas fa-bell"></i>
+              <span class="badge">3</span>
+            </div>
+            <div class="zen-header-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="zen-user">
+              <div class="zen-user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <span class="zen-user-name">Admin</span>
+              <i
+                class="fas fa-chevron-down"
+                style="font-size: 10px; color: #7f8c8d"
+              ></i>
+            </div>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <div class="zen-content">
+          <!-- Breadcrumb -->
+          <div class="zen-breadcrumb">
+            <i class="fas fa-home"></i>
+            <span>/</span>
+            <a href="{% url 'loans:dashboard' %}">Dashboard</a>
+            {% block breadcrumb %}{% endblock %}
+          </div>
+
+          <!-- Messages -->
+          {% if messages %} {% for message in messages %}
+          <div
+            class="zen-card"
+            style="border-left: 4px solid {% if message.tags == 'success' %}#5dd39e{% elif message.tags == 'error' %}#ee5a6f{% else %}#5b9bd5{% endif %}; margin-bottom: 20px;"
+          >
+            <div class="zen-card-body">{{ message }}</div>
+          </div>
+          {% endfor %} {% endif %}
+
+          <!-- Page Content -->
+          {% block content %}{% endblock %}
+        </div>
+      </main>
     </div>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <!-- Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
+    <link
+      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet"
+    />
+
     {% block extra_js %}{% endblock %}
-    
+
     <script>
-    // Mobile sidebar toggle
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.querySelector('.zen-sidebar-overlay');
-        
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-    }
-    
-    // Close sidebar when clicking on a link (mobile)
-    document.querySelectorAll('.zen-nav-item').forEach(item => {
-        item.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                toggleSidebar();
-            }
+      // Mobile sidebar toggle
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.querySelector(".zen-sidebar-overlay");
+
+        sidebar.classList.toggle("active");
+        overlay.classList.toggle("active");
+      }
+
+      // Close sidebar when clicking on a link (mobile)
+      document.querySelectorAll(".zen-nav-item").forEach((item) => {
+        item.addEventListener("click", function () {
+          if (window.innerWidth <= 768) {
+            toggleSidebar();
+          }
         });
-    });
-    
-    // Close sidebar on window resize if desktop
-    window.addEventListener('resize', function() {
+      });
+
+      // Close sidebar on window resize if desktop
+      window.addEventListener("resize", function () {
         if (window.innerWidth > 768) {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.querySelector('.zen-sidebar-overlay');
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
+          const sidebar = document.getElementById("sidebar");
+          const overlay = document.querySelector(".zen-sidebar-overlay");
+          sidebar.classList.remove("active");
+          overlay.classList.remove("active");
         }
-    });
+      });
     </script>
-</body>
+  </body>
 </html>

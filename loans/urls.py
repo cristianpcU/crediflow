@@ -4,6 +4,10 @@ from . import views
 app_name = 'loans'
 
 urlpatterns = [
+    # Autenticación
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    
     # Dashboard
     path('', views.DashboardView.as_view(), name='dashboard'),
     
