@@ -1,85 +1,143 @@
 {% load widget_tweaks %}
 
-<form id="prestamo GastosForm" method="post" action="">
-    {% csrf_token %}
-    
-    <div style="margin-bottom: 20px; padding: 15px; background: #f5f7fa; border-radius: 6px;">
-        <p style="margin: 0; color: #7f8c8d; font-size: 14px;">
-            <i class="fas fa-info-circle"></i> Selecciona los gastos adicionales que deseas aplicar a este préstamo. Los cambios se reflejarán en el monto total.
-        </p>
+<form id="prestamoGastosForm" method="post" action="">
+  {% csrf_token %}
+
+  <div
+    style="
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f5f7fa;
+      border-radius: 6px;
+    "
+  >
+    <p style="margin: 0; color: #7f8c8d; font-size: 14px">
+      <i class="fas fa-info-circle"></i> Selecciona los gastos adicionales que
+      deseas aplicar a este préstamo. Los cambios se reflejarán en el monto
+      total.
+    </p>
+  </div>
+
+  <div class="zen-form-group">
+    <label class="zen-form-label">Gastos Adicionales Disponibles</label>
+    <div
+      style="
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e8ecef;
+        border-radius: 6px;
+        padding: 15px;
+      "
+    >
+      {% for checkbox in form.gastos_adicionales %}
+      <div
+        style="
+          margin-bottom: 10px;
+          padding: 10px;
+          background: white;
+          border: 1px solid #e8ecef;
+          border-radius: 4px;
+        "
+      >
+        <label
+          style="display: flex; align-items: center; cursor: pointer; margin: 0"
+        >
+          {{ checkbox.tag }}
+          <span style="margin-left: 10px; flex: 1">
+            <strong>{{ checkbox.choice_label }}</strong>
+          </span>
+        </label>
+      </div>
+      {% endfor %}
     </div>
-    
-    <div class="zen-form-group">
-        <label class="zen-form-label">Gastos Adicionales Disponibles</label>
-        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e8ecef; border-radius: 6px; padding: 15px;">
-            {% for checkbox in form.gastos_adicionales %}
-            <div style="margin-bottom: 10px; padding: 10px; background: white; border: 1px solid #e8ecef; border-radius: 4px;">
-                <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                    {{ checkbox.tag }}
-                    <span style="margin-left: 10px; flex: 1;">
-                        <strong>{{ checkbox.choice_label }}</strong>
-                    </span>
-                </label>
-            </div>
-            {% endfor %}
-        </div>
-        {% if form.gastos_adicionales.errors %}
-            <div class="zen-form-error">{{ form.gastos_adicionales.errors.0 }}</div>
-        {% endif %}
+    {% if form.gastos_adicionales.errors %}
+    <div class="zen-form-error">{{ form.gastos_adicionales.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div
+    style="
+      margin-top: 15px;
+      padding: 15px;
+      background: #fff3cd;
+      border-radius: 6px;
+      border-left: 4px solid #f7b731;
+    "
+  >
+    <p style="margin: 0; color: #856404; font-size: 13px">
+      <i class="fas fa-exclamation-triangle"></i> <strong>Nota:</strong> Los
+      gastos adicionales se suman al monto total del préstamo pero no regeneran
+      las cuotas ya creadas.
+    </p>
+  </div>
+
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e8ecef;
+    "
+  >
+    <button
+      type="button"
+      class="zen-btn zen-btn-outline"
+      onclick="loadGastoForm('{% url 'loans:gasto-create' %}')"
+    >
+      <i class="fas fa-plus"></i> Crear Nuevo Gasto
+    </button>
+    <div style="display: flex; gap: 10px">
+      <button
+        type="button"
+        class="zen-btn zen-btn-outline"
+        onclick="closeModal('gastosModal')"
+      >
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+      <button type="submit" class="zen-btn zen-btn-primary">
+        <i class="fas fa-save"></i> Guardar Cambios
+      </button>
     </div>
-    
-    <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f7b731;">
-        <p style="margin: 0; color: #856404; font-size: 13px;">
-            <i class="fas fa-exclamation-triangle"></i> <strong>Nota:</strong> Los gastos adicionales se suman al monto total del préstamo pero no regeneran las cuotas ya creadas.
-        </p>
-    </div>
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
-        <button type="button" class="zen-btn zen-btn-outline" onclick="loadGastoForm('{% url 'loans:gasto-create' %}')">
-            <i class="fas fa-plus"></i> Crear Nuevo Gasto
-        </button>
-        <div style="display: flex; gap: 10px;">
-            <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('gastosModal')">
-                <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="submit" class="zen-btn zen-btn-primary">
-                <i class="fas fa-save"></i> Guardar Cambios
-            </button>
-        </div>
-    </div>
+  </div>
 </form>
 
 <script>
-$(document).on('submit', '#prestamoGastosForm', function(e) {
+  $(document).on("submit", "#prestamoGastosForm", function (e) {
     e.preventDefault();
-    
+
     var $form = $(this);
-    var formUrl = $form.attr('action') || window.prestamoGastosFormUrl;
-    
-    $('.zen-form-error').remove();
-    
+    var formUrl = $form.attr("action") || window.prestamoGastosFormUrl;
+
+    $(".zen-form-error").remove();
+
     $.ajax({
-        url: formUrl,
-        type: 'POST',
-        data: $form.serialize(),
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
-        success: function(response) {
-            if (response.success) {
-                closeModal('gastosModal');
-                location.reload();
-            }
-        },
-        error: function(xhr) {
-            if (xhr.status === 400) {
-                var errors = xhr.responseJSON.errors;
-                for (var field in errors) {
-                    var input = $('#id_' + field);
-                    input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
-                }
-            } else {
-                alert('Error al guardar. Por favor intente nuevamente.');
-            }
+      url: formUrl,
+      type: "POST",
+      data: $form.serialize(),
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      success: function (response) {
+        if (response.success) {
+          closeModal("gastosModal");
+          location.reload();
         }
+      },
+      error: function (xhr) {
+        if (xhr.status === 400) {
+          var errors = xhr.responseJSON.errors;
+          for (var field in errors) {
+            var input = $("#id_" + field);
+            input.after(
+              '<div class="zen-form-error">' +
+                errors[field].join(", ") +
+                "</div>"
+            );
+          }
+        } else {
+          alert("Error al guardar. Por favor intente nuevamente.");
+        }
+      },
     });
-});
+  });
 </script>

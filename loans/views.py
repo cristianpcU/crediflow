@@ -143,12 +143,6 @@ class PrestamoCreateView(LoginRequiredMixin, AjaxFormMixin, CreateView):
     form_class = PrestamoForm
     template_name = 'loans/modals/prestamo_form_zen.html'
     success_url = reverse_lazy('loans:prestamo-list')
-    
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        # Generar cuotas automáticamente
-        self.object.generar_cuotas()
-        return response
 
 
 class PrestamoUpdateView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
@@ -223,6 +217,12 @@ class CuotaPagoView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
     form_class = CuotaPagoForm
     template_name = 'loans/modals/cuota_pago_form_zen.html'
     success_url = reverse_lazy('loans:dashboard')
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        # Pre-cargar el monto pagado con el monto total de la cuota
+        initial['monto_pagado'] = self.object.monto_total
+        return initial
     
     def form_valid(self, form):
         cuota = form.save(commit=False)

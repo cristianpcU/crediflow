@@ -1,384 +1,755 @@
-{% extends 'loans/base_zen.html' %}
-{% load static %}
-
-{% block title %}Préstamo #{{ prestamo.id }} - CrediFlow{% endblock %}
-
-{% block breadcrumb %}
+{% extends 'loans/base_zen.html' %} {% load static %} {% block title %}Préstamo
+#{{ prestamo.id }} - CrediFlow{% endblock %} {% block breadcrumb %}
 <span>/</span>
 <a href="{% url 'loans:prestamo-list' %}">Préstamos</a>
 <span>/</span>
 <span>#{{ prestamo.id }}</span>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="zen-page-header">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-        <div>
-            <h1 class="zen-page-title">
-                <i class="fas fa-file-invoice-dollar" style="color: #5b9bd5;"></i> Préstamo #{{ prestamo.id }}
-            </h1>
-            <p class="zen-page-subtitle">Detalles completos del préstamo</p>
-        </div>
-        <a href="{% url 'loans:prestamo-list' %}" class="zen-btn zen-btn-outline hide-mobile">
-            <i class="fas fa-arrow-left"></i> Volver
-        </a>
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    "
+  >
+    <div>
+      <h1 class="zen-page-title">
+        <i class="fas fa-file-invoice-dollar" style="color: #5b9bd5"></i>
+        Préstamo #{{ prestamo.id }}
+      </h1>
+      <p class="zen-page-subtitle">Detalles completos del préstamo</p>
     </div>
-    
-    <div class="prestamo-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
-        <button onclick="loadPrestamoForm('{% url 'loans:prestamo-update' prestamo.pk %}')" class="zen-btn zen-btn-outline" style="flex: 1; min-width: 120px;">
-            <i class="fas fa-edit"></i> <span>Editar</span>
-        </button>
-        <button onclick="confirmDeletePrestamo({{ prestamo.pk }})" class="zen-btn" style="background: #ee5a6f; color: white; flex: 1; min-width: 120px;">
-            <i class="fas fa-trash-alt"></i> <span>Eliminar</span>
-        </button>
-        <a href="{% url 'loans:cliente-detail' prestamo.cliente.pk %}" class="zen-btn zen-btn-outline" style="flex: 1; min-width: 120px;">
-            <i class="fas fa-user"></i> <span>Ver Cliente</span>
-        </a>
-    </div>
+    <a
+      href="{% url 'loans:prestamo-list' %}"
+      class="zen-btn zen-btn-outline hide-mobile"
+    >
+      <i class="fas fa-arrow-left"></i> Volver
+    </a>
+  </div>
+
+  <div
+    class="prestamo-actions"
+    style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px"
+  >
+    <button
+      onclick="loadPrestamoForm('{% url 'loans:prestamo-update' prestamo.pk %}')"
+      class="zen-btn zen-btn-outline"
+      style="flex: 1; min-width: 120px"
+    >
+      <i class="fas fa-edit"></i> <span>Editar</span>
+    </button>
+    <button
+      onclick="confirmDeletePrestamo({{ prestamo.pk }})"
+      class="zen-btn"
+      style="background: #ee5a6f; color: white; flex: 1; min-width: 120px"
+    >
+      <i class="fas fa-trash-alt"></i> <span>Eliminar</span>
+    </button>
+    <a
+      href="{% url 'loans:cliente-detail' prestamo.cliente.pk %}"
+      class="zen-btn zen-btn-outline"
+      style="flex: 1; min-width: 120px"
+    >
+      <i class="fas fa-user"></i> <span>Ver Cliente</span>
+    </a>
+  </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-    <!-- Información del Préstamo -->
-    <div class="zen-card">
-        <div class="zen-card-header">
-            <h3 class="zen-card-title">
-                <i class="fas fa-info-circle"></i> Información del Préstamo
-            </h3>
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px">
+  <!-- Información del Préstamo -->
+  <div class="zen-card">
+    <div class="zen-card-header">
+      <h3 class="zen-card-title">
+        <i class="fas fa-info-circle"></i> Información del Préstamo
+      </h3>
+    </div>
+    <div class="zen-card-body">
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Cliente</label
+        >
+        <p style="margin: 5px 0; font-weight: 600">{{ prestamo.cliente }}</p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Monto Principal</label
+        >
+        <p
+          style="
+            margin: 5px 0;
+            font-weight: 600;
+            color: #5b9bd5;
+            font-size: 18px;
+          "
+        >
+          ${{ prestamo.monto_principal|floatformat:2 }}
+        </p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Tasa de Interés</label
+        >
+        <p style="margin: 5px 0; font-weight: 600">
+          {{ prestamo.tasa_interes_mensual }}% mensual
+        </p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Duración</label
+        >
+        <p style="margin: 5px 0; font-weight: 600">
+          {{ prestamo.duracion_meses }} meses
+        </p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Fecha Inicio</label
+        >
+        <p style="margin: 5px 0">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Estado</label
+        >
+        <p style="margin: 5px 0">
+          {% if prestamo.estado == 'ACTIVO' %}
+          <span class="zen-badge success"
+            >{{ prestamo.get_estado_display }}</span
+          >
+          {% elif prestamo.estado == 'LIQUIDADO' %}
+          <span class="zen-badge info">{{ prestamo.get_estado_display }}</span>
+          {% else %}
+          <span class="zen-badge">{{ prestamo.get_estado_display }}</span>
+          {% endif %}
+        </p>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #e8ecef; margin: 20px 0" />
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Interés Total</label
+        >
+        <p style="margin: 5px 0; font-weight: 600">
+          ${{ prestamo.interes_total|floatformat:2 }}
+        </p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+        >
+          Total Gastos
+          <button
+            type="button"
+            onclick="loadGastosForm('{% url 'loans:prestamo-gastos' prestamo.pk %}')"
+            style="
+              background: none;
+              border: none;
+              color: #5b9bd5;
+              cursor: pointer;
+              font-size: 12px;
+              margin-left: 5px;
+            "
+          >
+            <i class="fas fa-edit"></i> Gestionar
+          </button>
+        </label>
+        <p style="margin: 5px 0; font-weight: 600">
+          ${{ prestamo.total_gastos|floatformat:2 }}
+        </p>
+        {% if prestamo.gastos_adicionales.all %}
+        <div style="margin-top: 10px">
+          {% for gasto in prestamo.gastos_adicionales.all %}
+          <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px">
+            <i class="fas fa-check-circle" style="color: #5dd39e"></i> {{
+            gasto.nombre }}: ${{ gasto.monto|floatformat:2 }}
+          </div>
+          {% endfor %}
         </div>
-        <div class="zen-card-body">
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Cliente</label>
-                <p style="margin: 5px 0; font-weight: 600;">{{ prestamo.cliente }}</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Monto Principal</label>
-                <p style="margin: 5px 0; font-weight: 600; color: #5b9bd5; font-size: 18px;">${{ prestamo.monto_principal|floatformat:2 }}</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Tasa de Interés</label>
-                <p style="margin: 5px 0; font-weight: 600;">{{ prestamo.tasa_interes_mensual }}% mensual</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Duración</label>
-                <p style="margin: 5px 0; font-weight: 600;">{{ prestamo.duracion_meses }} meses</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Fecha Inicio</label>
-                <p style="margin: 5px 0;">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Estado</label>
-                <p style="margin: 5px 0;">
-                    {% if prestamo.estado == 'ACTIVO' %}
-                    <span class="zen-badge success">{{ prestamo.get_estado_display }}</span>
-                    {% elif prestamo.estado == 'LIQUIDADO' %}
-                    <span class="zen-badge info">{{ prestamo.get_estado_display }}</span>
-                    {% else %}
-                    <span class="zen-badge">{{ prestamo.get_estado_display }}</span>
-                    {% endif %}
-                </p>
-            </div>
-            
-            <hr style="border: none; border-top: 1px solid #e8ecef; margin: 20px 0;">
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Interés Total</label>
-                <p style="margin: 5px 0; font-weight: 600;">${{ prestamo.interes_total|floatformat:2 }}</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">
-                    Total Gastos
-                    <button type="button" onclick="loadGastosForm('{% url 'loans:prestamo-gastos' prestamo.pk %}')" style="background: none; border: none; color: #5b9bd5; cursor: pointer; font-size: 12px; margin-left: 5px;">
-                        <i class="fas fa-edit"></i> Gestionar
-                    </button>
-                </label>
-                <p style="margin: 5px 0; font-weight: 600;">${{ prestamo.total_gastos|floatformat:2 }}</p>
-                {% if prestamo.gastos_adicionales.all %}
-                <div style="margin-top: 10px;">
-                    {% for gasto in prestamo.gastos_adicionales.all %}
-                    <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 5px;">
-                        <i class="fas fa-check-circle" style="color: #5dd39e;"></i> {{ gasto.nombre }}: ${{ gasto.monto|floatformat:2 }}
-                    </div>
-                    {% endfor %}
-                </div>
+        {% else %}
+        <p style="margin: 5px 0; font-size: 12px; color: #7f8c8d">
+          Sin gastos adicionales
+        </p>
+        {% endif %}
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Monto Total</label
+        >
+        <p
+          style="
+            margin: 5px 0;
+            font-weight: 600;
+            color: #5b9bd5;
+            font-size: 20px;
+          "
+        >
+          ${{ prestamo.monto_total|floatformat:2 }}
+        </p>
+      </div>
+
+      <div style="margin-bottom: 15px">
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Valor Cuota</label
+        >
+        <p
+          style="
+            margin: 5px 0;
+            font-weight: 600;
+            color: #5dd39e;
+            font-size: 20px;
+          "
+        >
+          ${{ prestamo.valor_cuota|floatformat:2 }}
+        </p>
+      </div>
+
+      {% if prestamo.notas %}
+      <hr style="border: none; border-top: 1px solid #e8ecef; margin: 20px 0" />
+      <div>
+        <label
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          "
+          >Notas</label
+        >
+        <p style="margin: 5px 0; color: #7f8c8d">{{ prestamo.notas }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tabla de Cuotas -->
+  <div class="zen-card">
+    <div class="zen-card-header">
+      <h3 class="zen-card-title">
+        <i class="fas fa-list"></i> Cuotas del Préstamo
+      </h3>
+    </div>
+    <div class="zen-card-body" style="padding: 0">
+      <div class="zen-table-responsive">
+        <table class="zen-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Vencimiento</th>
+              <th>Capital</th>
+              <th class="hide-mobile">Interés</th>
+              <th>Total</th>
+              <th class="hide-mobile">Estado</th>
+              <th style="text-align: center">
+                <span class="hide-mobile">Acciones</span>
+                <i class="fas fa-cog show-mobile" style="display: none"></i>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cuota in cuotas %}
+            <tr>
+              <td>
+                <strong>{{ cuota.numero_cuota }}</strong>
+                <span
+                  class="show-mobile"
+                  style="display: none; margin-left: 5px"
+                >
+                  {% if cuota.estado == 'PAGADO' %}
+                  <i
+                    class="fas fa-check-circle"
+                    style="color: #5dd39e"
+                    title="Pagada"
+                  ></i>
+                  {% elif cuota.esta_vencida %}
+                  <i
+                    class="fas fa-exclamation-circle"
+                    style="color: #ee5a6f"
+                    title="Vencida"
+                  ></i>
+                  {% else %}
+                  <i
+                    class="fas fa-clock"
+                    style="color: #f7b731"
+                    title="Pendiente"
+                  ></i>
+                  {% endif %}
+                </span>
+              </td>
+              <td style="white-space: nowrap">
+                {{ cuota.fecha_vencimiento|date:"d/m/Y" }}
+              </td>
+              <td>${{ cuota.monto_capital|floatformat:2 }}</td>
+              <td class="hide-mobile" style="color: #f7b731">
+                ${{ cuota.monto_interes|floatformat:2 }}
+              </td>
+              <td><strong>${{ cuota.monto_total|floatformat:2 }}</strong></td>
+              <td class="hide-mobile">
+                {% if cuota.estado == 'PAGADO' %}
+                <span class="zen-badge success" 
+                      style="cursor: pointer;" 
+                      onclick="mostrarDetallesPago({{ cuota.pk }}, '{{ cuota.fecha_pago|date:"d/m/Y" }}', '{{ cuota.monto_pagado|floatformat:2 }}', '{{ cuota.notas|escapejs }}', {{ cuota.dias_mora }})"
+                      title="Click para ver detalles del pago">
+                  <i class="fas fa-check-circle"></i> Pagada
+                </span>
+                {% elif cuota.esta_vencida %}
+                <span class="zen-badge danger">
+                  <i class="fas fa-exclamation-circle"></i> Vencida
+                </span>
                 {% else %}
-                <p style="margin: 5px 0; font-size: 12px; color: #7f8c8d;">Sin gastos adicionales</p>
+                <span class="zen-badge warning">
+                  <i class="fas fa-clock"></i> Pendiente
+                </span>
                 {% endif %}
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Monto Total</label>
-                <p style="margin: 5px 0; font-weight: 600; color: #5b9bd5; font-size: 20px;">${{ prestamo.monto_total|floatformat:2 }}</p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Valor Cuota</label>
-                <p style="margin: 5px 0; font-weight: 600; color: #5dd39e; font-size: 20px;">${{ prestamo.valor_cuota|floatformat:2 }}</p>
-            </div>
-            
-            {% if prestamo.notas %}
-            <hr style="border: none; border-top: 1px solid #e8ecef; margin: 20px 0;">
-            <div>
-                <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">Notas</label>
-                <p style="margin: 5px 0; color: #7f8c8d;">{{ prestamo.notas }}</p>
-            </div>
-            {% endif %}
-        </div>
+              </td>
+              <td style="text-align: center; white-space: nowrap">
+                {% if cuota.estado != 'PAGADO' %}
+                <button
+                  type="button"
+                  class="zen-btn zen-btn-success cuota-pagar-btn"
+                  onclick="loadPagoForm('{% url 'loans:cuota-pago' cuota.pk %}')"
+                  style="padding: 8px 16px; font-size: 13px"
+                >
+                  <i class="fas fa-dollar-sign"></i>
+                  <span class="hide-mobile">Pagar</span>
+                </button>
+                {% else %}
+                <button
+                  type="button"
+                  class="zen-btn zen-btn-outline"
+                  onclick="mostrarDetallesPago({{ cuota.pk }}, '{{ cuota.fecha_pago|date:"d/m/Y" }}', '{{ cuota.monto_pagado|floatformat:2 }}', '{{ cuota.notas|escapejs }}', {{ cuota.dias_mora }})"
+                  style="padding: 8px 16px; font-size: 13px"
+                  title="Ver detalles del pago"
+                >
+                  <i class="fas fa-info-circle"></i>
+                  <span class="hide-mobile">Detalles</span>
+                </button>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot
+            style="background-color: #f8f9fa; border-top: 2px solid #5b9bd5"
+          >
+            <tr>
+              <td
+                colspan="2"
+                style="text-align: right; padding: 15px; font-weight: 600"
+              >
+                <strong>TOTALES:</strong>
+              </td>
+              <td style="padding: 15px; font-weight: 600; color: #2c3e50">
+                ${{ prestamo.monto_principal|floatformat:2 }}
+              </td>
+              <td
+                class="hide-mobile"
+                style="padding: 15px; font-weight: 600; color: #f7b731"
+              >
+                ${{ prestamo.interes_total|floatformat:2 }}
+              </td>
+              <td
+                style="
+                  padding: 15px;
+                  font-weight: 700;
+                  color: #5b9bd5;
+                  font-size: 16px;
+                "
+              >
+                ${{ prestamo.monto_total|floatformat:2 }}
+              </td>
+              <td class="hide-mobile"></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
-    
-    <!-- Tabla de Cuotas -->
-    <div class="zen-card">
-        <div class="zen-card-header">
-            <h3 class="zen-card-title">
-                <i class="fas fa-list"></i> Cuotas del Préstamo
-            </h3>
-        </div>
-        <div class="zen-card-body" style="padding: 0;">
-            <div class="zen-table-responsive">
-                <table class="zen-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Vencimiento</th>
-                            <th>Monto</th>
-                            <th class="hide-mobile">Estado</th>
-                            <th style="text-align: center;">
-                                <span class="hide-mobile">Acciones</span>
-                                <i class="fas fa-cog show-mobile" style="display: none;"></i>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cuota in cuotas %}
-                        <tr>
-                            <td>
-                                <strong>{{ cuota.numero_cuota }}</strong>
-                                <span class="show-mobile" style="display: none; margin-left: 5px;">
-                                    {% if cuota.estado == 'PAGADO' %}
-                                    <i class="fas fa-check-circle" style="color: #5dd39e;" title="Pagada"></i>
-                                    {% elif cuota.esta_vencida %}
-                                    <i class="fas fa-exclamation-circle" style="color: #ee5a6f;" title="Vencida"></i>
-                                    {% else %}
-                                    <i class="fas fa-clock" style="color: #f7b731;" title="Pendiente"></i>
-                                    {% endif %}
-                                </span>
-                            </td>
-                            <td style="white-space: nowrap;">{{ cuota.fecha_vencimiento|date:"d/m/Y" }}</td>
-                            <td><strong>${{ cuota.monto_total|floatformat:2 }}</strong></td>
-                            <td class="hide-mobile">
-                                {% if cuota.estado == 'PAGADO' %}
-                                <span class="zen-badge success">
-                                    <i class="fas fa-check-circle"></i> Pagada
-                                </span>
-                                {% elif cuota.esta_vencida %}
-                                <span class="zen-badge danger">
-                                    <i class="fas fa-exclamation-circle"></i> Vencida
-                                </span>
-                                {% else %}
-                                <span class="zen-badge warning">
-                                    <i class="fas fa-clock"></i> Pendiente
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td style="text-align: center; white-space: nowrap;">
-                                {% if cuota.estado != 'PAGADO' %}
-                                <button type="button" class="zen-btn zen-btn-success cuota-pagar-btn" onclick="loadPagoForm('{% url 'loans:cuota-pago' cuota.pk %}')" style="padding: 8px 16px; font-size: 13px;">
-                                    <i class="fas fa-dollar-sign"></i> 
-                                    <span class="hide-mobile">Pagar</span>
-                                </button>
-                                {% else %}
-                                <span style="color: #5dd39e; font-size: 14px;">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span class="hide-mobile" style="margin-left: 5px; font-size: 12px;">Pagada</span>
-                                </span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 
 <!-- Modal para Pago -->
-<div id="pagoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
-            <button onclick="closeModal('pagoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
-        </div>
-        <div id="pagoModalBody" style="padding: 20px;">
-            <!-- El formulario se cargará aquí -->
-        </div>
+<div id="pagoModal" class="zen-modal">
+  <div class="zen-modal-content">
+    <div class="zen-modal-header">
+      <h3 class="zen-modal-title">
+        <i class="fas fa-money-bill-wave"></i> Registrar Pago
+      </h3>
+      <button onclick="closeModal('pagoModal')" class="zen-modal-close">
+        &times;
+      </button>
     </div>
+    <div id="pagoModalBody" class="zen-modal-body">
+      <!-- El formulario se cargará aquí -->
+    </div>
+  </div>
 </div>
 
 <!-- Modal para Gastos Adicionales -->
-<div id="gastosModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-receipt"></i> Gestionar Gastos Adicionales</h3>
-            <button onclick="closeModal('gastosModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
-        </div>
-        <div id="gastosModalBody" style="padding: 20px;">
-            <!-- El formulario se cargará aquí -->
-        </div>
+<div id="gastosModal" class="zen-modal">
+  <div class="zen-modal-content">
+    <div class="zen-modal-header">
+      <h3 class="zen-modal-title">
+        <i class="fas fa-receipt"></i> Gestionar Gastos Adicionales
+      </h3>
+      <button onclick="closeModal('gastosModal')" class="zen-modal-close">
+        &times;
+      </button>
     </div>
+    <div id="gastosModalBody" class="zen-modal-body">
+      <!-- El formulario se cargará aquí -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Detalles de Pago -->
+<div id="detallesPagoModal" class="zen-modal">
+  <div class="zen-modal-content" style="max-width: 500px;">
+    <div class="zen-modal-header">
+      <h3 class="zen-modal-title">
+        <i class="fas fa-receipt"></i> Detalles del Pago
+      </h3>
+      <button onclick="closeModal('detallesPagoModal')" class="zen-modal-close">
+        &times;
+      </button>
+    </div>
+    <div class="zen-modal-body">
+      <div style="padding: 20px;">
+        <div style="margin-bottom: 20px;">
+          <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-calendar-check" style="color: #5b9bd5;"></i> Fecha de Pago
+          </label>
+          <p id="detalleFechaPago" style="margin: 5px 0; font-weight: 600; font-size: 16px; color: #2c3e50;">
+            -
+          </p>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-dollar-sign" style="color: #5dd39e;"></i> Monto Pagado
+          </label>
+          <p id="detalleMontoPagado" style="margin: 5px 0; font-weight: 600; font-size: 18px; color: #5dd39e;">
+            $0.00
+          </p>
+        </div>
+        
+        <div id="detalleDiasMoraContainer" style="margin-bottom: 20px; display: none;">
+          <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-exclamation-triangle" style="color: #ee5a6f;"></i> Días de Mora
+          </label>
+          <p id="detalleDiasMora" style="margin: 5px 0; font-weight: 600; font-size: 16px; color: #ee5a6f;">
+            0 días
+          </p>
+        </div>
+        
+        <div id="detalleNotasContainer" style="margin-bottom: 20px; display: none;">
+          <label style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-sticky-note" style="color: #f7b731;"></i> Notas
+          </label>
+          <p id="detalleNotas" style="margin: 5px 0; color: #2c3e50; font-size: 14px; line-height: 1.6;">
+            -
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+          <button onclick="closeModal('detallesPagoModal')" class="zen-btn zen-btn-primary">
+            <i class="fas fa-check"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Modal para Crear Gasto -->
-<div id="gastoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-plus-circle"></i> Crear Gasto Adicional</h3>
-            <button onclick="closeModal('gastoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
-        </div>
-        <div id="gastoModalBody" style="padding: 20px;">
-            <!-- El formulario se cargará aquí -->
-        </div>
+<div id="gastoModal" class="zen-modal">
+  <div class="zen-modal-content">
+    <div class="zen-modal-header">
+      <h3 class="zen-modal-title">
+        <i class="fas fa-plus-circle"></i> Crear Gasto Adicional
+      </h3>
+      <button onclick="closeModal('gastoModal')" class="zen-modal-close">
+        &times;
+      </button>
     </div>
+    <div id="gastoModalBody" class="zen-modal-body">
+      <!-- El formulario se cargará aquí -->
+    </div>
+  </div>
 </div>
 
 <!-- Modal para Editar Préstamo -->
-<div id="prestamoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-edit"></i> Editar Préstamo</h3>
-            <button onclick="closeModal('prestamoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
-        </div>
-        <div id="prestamoModalBody" style="padding: 20px;">
-            <!-- El formulario se cargará aquí -->
-        </div>
+<div id="prestamoModal" class="zen-modal">
+  <div class="zen-modal-content">
+    <div class="zen-modal-header">
+      <h3 class="zen-modal-title">
+        <i class="fas fa-edit"></i> Editar Préstamo
+      </h3>
+      <button onclick="closeModal('prestamoModal')" class="zen-modal-close">
+        &times;
+      </button>
     </div>
+    <div id="prestamoModalBody" class="zen-modal-body">
+      <!-- El formulario se cargará aquí -->
+    </div>
+  </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-function loadPagoForm(url) {
-    $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(data) {
-            $('#pagoModalBody').html(data);
-            $('#pagoModal').css('display', 'flex');
-        }
-    });
-}
+  function loadPagoForm(url) {
+    console.log("loadPagoForm llamada con URL:", url);
+    console.log("jQuery disponible:", typeof $ !== "undefined");
 
-function loadGastosForm(url) {
+    // Guardar la URL para el submit del formulario
+    window.pagoFormUrl = url;
+
+    $.ajax({
+      url: url,
+      type: "GET",
+      beforeSend: function () {
+        console.log("Enviando petición AJAX...");
+      },
+      success: function (data) {
+        console.log("Formulario cargado exitosamente, longitud:", data.length);
+        $("#pagoModalBody").html(data);
+        $("#pagoModal").css("display", "flex");
+        console.log("Modal debe estar visible ahora");
+      },
+      error: function (xhr, status, error) {
+        console.error("Error AJAX:", {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          responseText: xhr.responseText,
+          error: error,
+        });
+        if (xhr.status === 404) {
+          alert(
+            "Error: No se encontró la cuota. Por favor recargue la página."
+          );
+        } else if (xhr.status === 403 || xhr.status === 401) {
+          alert(
+            "Error: No tiene permisos. Por favor inicie sesión nuevamente."
+          );
+          window.location.href = "{% url 'loans:login' %}";
+        } else {
+          alert(
+            "Error al cargar el formulario de pago (" +
+              xhr.status +
+              "). Por favor intente nuevamente."
+          );
+        }
+      },
+    });
+  }
+
+  function loadGastosForm(url) {
     window.prestamoGastosFormUrl = url;
-    
-    $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(data) {
-            $('#gastosModalBody').html(data);
-            $('#gastosModal').css('display', 'flex');
-        },
-        error: function(xhr) {
-            alert('Error al cargar el formulario.');
-        }
-    });
-}
 
-function loadGastoForm(url) {
+    $.ajax({
+      url: url,
+      type: "GET",
+      success: function (data) {
+        $("#gastosModalBody").html(data);
+        $("#gastosModal").css("display", "flex");
+      },
+      error: function (xhr) {
+        alert("Error al cargar el formulario.");
+      },
+    });
+  }
+
+  function loadGastoForm(url) {
     window.gastoFormUrl = url;
-    
+
     $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(data) {
-            $('#gastoModalBody').html(data);
-            $('#gastoModal').css('display', 'flex');
-        },
-        error: function(xhr) {
-            alert('Error al cargar el formulario.');
-        }
+      url: url,
+      type: "GET",
+      success: function (data) {
+        $("#gastoModalBody").html(data);
+        $("#gastoModal").css("display", "flex");
+      },
+      error: function (xhr) {
+        alert("Error al cargar el formulario.");
+      },
     });
-}
+  }
 
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'flex';
-}
+  function openModal(modalId) {
+    document.getElementById(modalId).style.display = "flex";
+  }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+  }
 
-var prestamoFormUrl = '';
+  var prestamoFormUrl = "";
 
-function loadPrestamoForm(url) {
+  function loadPrestamoForm(url) {
     prestamoFormUrl = url;
     $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(response) {
-            $('#prestamoModalBody').html(response);
-            openModal('prestamoModal');
-        },
-        error: function() {
-            alert('Error al cargar el formulario');
-        }
+      url: url,
+      type: "GET",
+      success: function (response) {
+        $("#prestamoModalBody").html(response);
+        openModal("prestamoModal");
+      },
+      error: function () {
+        alert("Error al cargar el formulario");
+      },
     });
-}
+  }
 
-function confirmDeletePrestamo(prestamoId) {
-    if (confirm('¿Está seguro que desea eliminar este préstamo?\n\nEsta acción no se puede deshacer.')) {
-        $.ajax({
-            url: '/prestamos/' + prestamoId + '/eliminar/',
-            type: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('Préstamo eliminado correctamente');
-                    window.location.href = '/prestamos/';
-                }
-            },
-            error: function() {
-                alert('Error al eliminar el préstamo');
-            }
-        });
-    }
-}
-
-// Delegación de eventos para el formulario de préstamo
-$(document).on('submit', '#prestamoForm', function(e) {
-    e.preventDefault();
+  function mostrarDetallesPago(cuotaId, fechaPago, montoPagado, notas, diasMora) {
+    // Actualizar el contenido del modal
+    $('#detalleFechaPago').text(fechaPago || '-');
+    $('#detalleMontoPagado').text('$' + montoPagado);
     
-    $.ajax({
-        url: prestamoFormUrl,
-        type: 'POST',
-        data: $(this).serialize(),
-        headers: {'X-Requested-With': 'XMLHttpRequest'},
-        success: function(response) {
-            if (response.success) {
-                closeModal('prestamoModal');
-                location.reload();
-            }
+    // Mostrar u ocultar los días de mora si existen
+    if (diasMora && diasMora > 0) {
+      $('#detalleDiasMora').text(diasMora + (diasMora === 1 ? ' día' : ' días'));
+      $('#detalleDiasMoraContainer').show();
+    } else {
+      $('#detalleDiasMoraContainer').hide();
+    }
+    
+    // Mostrar u ocultar las notas según si existen
+    if (notas && notas.trim() !== '') {
+      $('#detalleNotas').text(notas);
+      $('#detalleNotasContainer').show();
+    } else {
+      $('#detalleNotasContainer').hide();
+    }
+    
+    // Abrir el modal
+    openModal('detallesPagoModal');
+  }
+
+  function confirmDeletePrestamo(prestamoId) {
+    if (
+      confirm(
+        "¿Está seguro que desea eliminar este préstamo?\n\nEsta acción no se puede deshacer."
+      )
+    ) {
+      $.ajax({
+        url: "/prestamos/" + prestamoId + "/eliminar/",
+        type: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+          "X-Requested-With": "XMLHttpRequest",
         },
-        error: function(xhr) {
-            if (xhr.status === 400) {
-                var errors = xhr.responseJSON.errors;
-                for (var field in errors) {
-                    var input = $('#id_' + field);
-                    input.css('border-color', '#ee5a6f');
-                    input.after('<div class="zen-form-error">' + errors[field].join(', ') + '</div>');
-                }
-            }
+        success: function (response) {
+          if (response.success) {
+            alert("Préstamo eliminado correctamente");
+            window.location.href = "/prestamos/";
+          }
+        },
+        error: function () {
+          alert("Error al eliminar el préstamo");
+        },
+      });
+    }
+  }
+
+  // Delegación de eventos para el formulario de préstamo
+  $(document).on("submit", "#prestamoForm", function (e) {
+    e.preventDefault();
+
+    $.ajax({
+      url: prestamoFormUrl,
+      type: "POST",
+      data: $(this).serialize(),
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      success: function (response) {
+        if (response.success) {
+          closeModal("prestamoModal");
+          location.reload();
         }
+      },
+      error: function (xhr) {
+        if (xhr.status === 400) {
+          var errors = xhr.responseJSON.errors;
+          for (var field in errors) {
+            var input = $("#id_" + field);
+            input.css("border-color", "#ee5a6f");
+            input.after(
+              '<div class="zen-form-error">' +
+                errors[field].join(", ") +
+                "</div>"
+            );
+          }
+        }
+      },
     });
-});
+  });
 </script>
 {% endblock %}

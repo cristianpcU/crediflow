@@ -1,91 +1,307 @@
 {% load widget_tweaks %}
 
 <form id="prestamoForm" method="post" action="">
-    {% csrf_token %}
-    
-    <div class="zen-form-group">
-        <label class="zen-form-label"><i class="fas fa-user-tie" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.cliente.label }}</label>
-        {% render_field form.cliente class="zen-form-control zen-select2" %}
-        {% if form.cliente.errors %}
-            <div class="zen-form-error">{{ form.cliente.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div class="zen-form-group">
-            <label class="zen-form-label"><i class="fas fa-dollar-sign" style="color: #5dd39e; margin-right: 5px;"></i> {{ form.monto_principal.label }}</label>
-            {% render_field form.monto_principal class="zen-form-control" placeholder="1000.00" %}
-            {% if form.monto_principal.errors %}
-                <div class="zen-form-error">{{ form.monto_principal.errors.0 }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="zen-form-group">
-            <label class="zen-form-label"><i class="fas fa-percentage" style="color: #f7b731; margin-right: 5px;"></i> {{ form.tasa_interes_mensual.label }}</label>
-            {% render_field form.tasa_interes_mensual class="zen-form-control" placeholder="5.00" %}
-            {% if form.tasa_interes_mensual.errors %}
-                <div class="zen-form-error">{{ form.tasa_interes_mensual.errors.0 }}</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <div class="zen-form-group">
-            <label class="zen-form-label"><i class="fas fa-calendar-alt" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.duracion_meses.label }}</label>
-            {% render_field form.duracion_meses class="zen-form-control" placeholder="12" %}
-            {% if form.duracion_meses.errors %}
-                <div class="zen-form-error">{{ form.duracion_meses.errors.0 }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="zen-form-group">
-            <label class="zen-form-label"><i class="fas fa-calendar-check" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.fecha_inicio.label }}</label>
-            {% render_field form.fecha_inicio class="zen-form-control" %}
-            {% if form.fecha_inicio.errors %}
-                <div class="zen-form-error">{{ form.fecha_inicio.errors.0 }}</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="zen-form-group">
-        <label class="zen-form-label"><i class="fas fa-sticky-note" style="color: #5b9bd5; margin-right: 5px;"></i> {{ form.notas.label }}</label>
-        {% render_field form.notas class="zen-form-control" rows="3" placeholder="Notas adicionales (opcional)" %}
-        {% if form.notas.errors %}
-            <div class="zen-form-error">{{ form.notas.errors.0 }}</div>
-        {% endif %}
-    </div>
-    
-    {% if form.instance.pk %}
-    <div style="margin-bottom: 15px; padding: 12px; background: #fff3cd; border-left: 4px solid #f7b731; border-radius: 4px;">
-        <p style="margin: 0; color: #856404; font-size: 13px;">
-            <i class="fas fa-exclamation-triangle"></i> <strong>Advertencia:</strong> Al editar el préstamo, todas las cuotas existentes se eliminarán y se recalcularán automáticamente con los nuevos valores.
-        </p>
-    </div>
-    {% else %}
-    <div style="margin-bottom: 15px; padding: 12px; background: #e3f2fd; border-left: 4px solid #5b9bd5; border-radius: 4px;">
-        <p style="margin: 0; color: #1976d2; font-size: 13px;">
-            <i class="fas fa-info-circle"></i> <strong>Nota:</strong> Los gastos adicionales se pueden agregar después de crear el préstamo desde la página de detalles.
-        </p>
-    </div>
+  {% csrf_token %}
+
+  <div class="zen-form-group">
+    <label class="zen-form-label"
+      ><i class="fas fa-user-tie" style="color: #5b9bd5; margin-right: 5px"></i>
+      {{ form.cliente.label }}</label
+    >
+    {% render_field form.cliente class="zen-form-control zen-select2" %} 
+    {% if form.cliente.errors %}
+    <div class="zen-form-error">{{ form.cliente.errors.0 }}</div>
     {% endif %}
-    
-    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e8ecef;">
-        <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('prestamoModal')">
-            <i class="fas fa-times"></i> Cancelar
-        </button>
-        <button type="submit" class="zen-btn zen-btn-primary">
-            <i class="fas fa-save"></i> Guardar
-        </button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+    <div class="zen-form-group">
+      <label class="zen-form-label"
+        ><i
+          class="fas fa-dollar-sign"
+          style="color: #5dd39e; margin-right: 5px"
+        ></i>
+        {{ form.monto_principal.label }}</label
+      >
+      {% render_field form.monto_principal class="zen-form-control" placeholder="1000.00" %} 
+      {% if form.monto_principal.errors %}
+      <div class="zen-form-error">{{ form.monto_principal.errors.0 }}</div>
+      {% endif %}
     </div>
+
+    <div class="zen-form-group">
+      <label class="zen-form-label"
+        ><i
+          class="fas fa-percentage"
+          style="color: #f7b731; margin-right: 5px"
+        ></i>
+        {{ form.tasa_interes_mensual.label }}</label
+      >
+      {% render_field form.tasa_interes_mensual class="zen-form-control" placeholder="5.00" %} 
+      {% if form.tasa_interes_mensual.errors %}
+      <div class="zen-form-error">{{ form.tasa_interes_mensual.errors.0 }}</div>
+      {% endif %}
+      <small
+        style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block"
+      >
+        <i class="fas fa-info-circle"></i> Porcentaje de interés mensual
+      </small>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+    <div class="zen-form-group">
+      <label class="zen-form-label"
+        ><i
+          class="fas fa-money-bill-wave"
+          style="color: #5dd39e; margin-right: 5px"
+        ></i>
+        {{ form.monto_interes_mensual.label }}</label
+      >
+      {% render_field form.monto_interes_mensual class="zen-form-control" placeholder="50.00" %} 
+      {% if form.monto_interes_mensual.errors %}
+      <div class="zen-form-error">
+        {{ form.monto_interes_mensual.errors.0 }}
+      </div>
+      {% endif %}
+      <small
+        style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block"
+      >
+        <i class="fas fa-info-circle"></i> Monto fijo mensual de interés
+      </small>
+    </div>
+
+    <div class="zen-form-group">
+      <label class="zen-form-label"
+        ><i
+          class="fas fa-hand-holding-usd"
+          style="color: #f7b731; margin-right: 5px"
+        ></i>
+        {{ form.interes_total_fijo.label }}</label
+      >
+      {% render_field form.interes_total_fijo class="zen-form-control" placeholder="150.00" %} 
+      {% if form.interes_total_fijo.errors %}
+      <div class="zen-form-error">{{ form.interes_total_fijo.errors.0 }}</div>
+      {% endif %}
+      <small
+        style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block"
+      >
+        <i class="fas fa-info-circle"></i> Interés total del préstamo
+      </small>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+    <div class="zen-form-group">
+      <label class="zen-form-label"
+        ><i
+          class="fas fa-calendar-alt"
+          style="color: #5b9bd5; margin-right: 5px"
+        ></i>
+        {{ form.duracion_meses.label }}</label
+      >
+      {% render_field form.duracion_meses class="zen-form-control" placeholder="12" %} 
+      {% if form.duracion_meses.errors %}
+      <div class="zen-form-error">{{ form.duracion_meses.errors.0 }}</div>
+      {% endif %}
+    </div>
+
+    <div class="zen-form-group">
+      <label class="zen-form-label"
+        ><i
+          class="fas fa-calendar-check"
+          style="color: #5b9bd5; margin-right: 5px"
+        ></i>
+        {{ form.fecha_inicio.label }}</label
+      >
+      {% render_field form.fecha_inicio class="zen-form-control" %} 
+      {% if form.fecha_inicio.errors %}
+      <div class="zen-form-error">{{ form.fecha_inicio.errors.0 }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="zen-form-group">
+    <label class="zen-form-label"
+      ><i
+        class="fas fa-sticky-note"
+        style="color: #5b9bd5; margin-right: 5px"
+      ></i>
+      {{ form.notas.label }}</label
+    >
+    {% render_field form.notas class="zen-form-control" rows="3" placeholder="Notas adicionales (opcional)" %} 
+    {% if form.notas.errors %}
+    <div class="zen-form-error">{{ form.notas.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div
+    style="
+      margin-bottom: 15px;
+      padding: 12px;
+      background: #e8f5e9;
+      border-left: 4px solid #5dd39e;
+      border-radius: 4px;
+    "
+  >
+    <p style="margin: 0 0 8px 0; color: #2e7d32; font-size: 13px">
+      <i class="fas fa-lightbulb"></i> <strong>Opciones de Interés:</strong>
+    </p>
+    <ul style="margin: 0; padding-left: 20px; color: #2e7d32; font-size: 12px">
+      <li>
+        Define el <strong>porcentaje (%)</strong> para calcular automáticamente
+        el interés
+      </li>
+      <li>
+        O define el <strong>monto mensual ($)</strong> que cobrarás como interés
+      </li>
+      <li>
+        O define el <strong>interés total ($)</strong> del préstamo directamente
+      </li>
+    </ul>
+  </div>
+
+  {% if form.instance.pk %}
+  <div
+    style="
+      margin-bottom: 15px;
+      padding: 12px;
+      background: #fff3cd;
+      border-left: 4px solid #f7b731;
+      border-radius: 4px;
+    "
+  >
+    <p style="margin: 0; color: #856404; font-size: 13px">
+      <i class="fas fa-exclamation-triangle"></i>
+      <strong>Advertencia:</strong> Al editar el préstamo, todas las cuotas
+      existentes se eliminarán y se recalcularán automáticamente con los nuevos
+      valores.
+    </p>
+  </div>
+  {% else %}
+  <div
+    style="
+      margin-bottom: 15px;
+      padding: 12px;
+      background: #e3f2fd;
+      border-left: 4px solid #5b9bd5;
+      border-radius: 4px;
+    "
+  >
+    <p style="margin: 0; color: #1976d2; font-size: 13px">
+      <i class="fas fa-info-circle"></i> <strong>Nota:</strong> Los gastos
+      adicionales se pueden agregar después de crear el préstamo desde la página
+      de detalles.
+    </p>
+  </div>
+  {% endif %}
+
+  <div
+    style="
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e8ecef;
+    "
+  >
+    <button
+      type="button"
+      class="zen-btn zen-btn-outline"
+      onclick="closeModal('prestamoModal')"
+    >
+      <i class="fas fa-times"></i> Cancelar
+    </button>
+    <button type="submit" class="zen-btn zen-btn-primary">
+      <i class="fas fa-save"></i> Guardar
+    </button>
+  </div>
 </form>
 
 <script>
-$(document).ready(function() {
+  $(document).ready(function () {
     // Inicializar Select2 para el campo de cliente
-    $('.zen-select2').select2({
-        dropdownParent: $('#prestamoModal'),
-        placeholder: 'Seleccione un cliente',
-        width: '100%'
+    $(".zen-select2").select2({
+      dropdownParent: $("#prestamoModal"),
+      placeholder: "Seleccione un cliente",
+      width: "100%",
     });
-});
+
+    // Calcular porcentaje automáticamente cuando se ingresa monto de interés mensual
+    function calcularPorcentaje() {
+      var montoPrincipal = parseFloat($("#id_monto_principal").val());
+      var montoInteresMensual = parseFloat(
+        $("#id_monto_interes_mensual").val()
+      );
+
+      if (
+        montoPrincipal &&
+        montoPrincipal > 0 &&
+        montoInteresMensual &&
+        montoInteresMensual >= 0
+      ) {
+        // Calcular porcentaje: (Monto Mensual / Monto Principal) * 100
+        var porcentaje = (montoInteresMensual / montoPrincipal) * 100;
+        $("#id_tasa_interes_mensual").val(porcentaje.toFixed(2));
+      }
+    }
+
+    // Calcular interés total cuando se ingresa monto mensual
+    function calcularInteresTotal() {
+      var montoInteresMensual = parseFloat(
+        $("#id_monto_interes_mensual").val()
+      );
+      var duracionMeses = parseInt($("#id_duracion_meses").val());
+
+      if (
+        montoInteresMensual &&
+        montoInteresMensual >= 0 &&
+        duracionMeses &&
+        duracionMeses > 0
+      ) {
+        var interesTotal = montoInteresMensual * duracionMeses;
+        // Mostrar el interés total calculado (opcional, solo informativo)
+        console.log("Interés total calculado: $" + interesTotal.toFixed(2));
+      }
+    }
+
+    // Eventos para calcular automáticamente
+    $("#id_monto_interes_mensual").on("input change", function () {
+      calcularPorcentaje();
+      calcularInteresTotal();
+      // Limpiar el campo de interés total fijo si se está usando monto mensual
+      if ($(this).val()) {
+        $("#id_interes_total_fijo").val("");
+      }
+    });
+
+    $("#id_monto_principal").on("input change", function () {
+      if ($("#id_monto_interes_mensual").val()) {
+        calcularPorcentaje();
+      }
+    });
+
+    $("#id_duracion_meses").on("input change", function () {
+      if ($("#id_monto_interes_mensual").val()) {
+        calcularInteresTotal();
+      }
+    });
+
+    // Limpiar campos relacionados cuando se usa tasa de interés porcentual
+    $("#id_tasa_interes_mensual").on("input change", function () {
+      if ($(this).val() && !$("#id_monto_interes_mensual").is(":focus")) {
+        $("#id_monto_interes_mensual").val("");
+        $("#id_interes_total_fijo").val("");
+      }
+    });
+
+    // Limpiar campos relacionados cuando se usa interés total fijo
+    $("#id_interes_total_fijo").on("input change", function () {
+      if ($(this).val()) {
+        $("#id_monto_interes_mensual").val("");
+        $("#id_tasa_interes_mensual").val("");
+      }
+    });
+  });
 </script>

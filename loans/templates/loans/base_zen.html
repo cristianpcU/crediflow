@@ -135,10 +135,9 @@
         <!-- Header -->
         <header class="zen-header">
           <div class="zen-header-left">
-            <div class="zen-search">
-              <i class="fas fa-search"></i>
-              <input type="text" placeholder="Buscar clientes, préstamos..." />
-            </div>
+            <h2 class="zen-header-title">
+              {% block page_title %}CrediFlow{% endblock %}
+            </h2>
           </div>
 
           <div class="zen-header-right">
@@ -153,7 +152,9 @@
               <div class="zen-user-avatar">
                 <i class="fas fa-user"></i>
               </div>
-              <span class="zen-user-name">Admin</span>
+              <span class="zen-user-name"
+                >{{ request.user.get_full_name|default:request.user.username}}</span
+              >
               <i
                 class="fas fa-chevron-down"
                 style="font-size: 10px; color: #7f8c8d"
@@ -164,12 +165,32 @@
 
         <!-- Content -->
         <div class="zen-content">
-          <!-- Breadcrumb -->
-          <div class="zen-breadcrumb">
-            <i class="fas fa-home"></i>
-            <span>/</span>
-            <a href="{% url 'loans:dashboard' %}">Dashboard</a>
-            {% block breadcrumb %}{% endblock %}
+          <!-- Breadcrumb con Búsqueda -->
+          <div class="zen-breadcrumb-search-container">
+            <div class="zen-breadcrumb">
+              <i class="fas fa-home"></i>
+              <span>/</span>
+              <a href="{% url 'loans:dashboard' %}">Dashboard</a>
+              {% block breadcrumb %}{% endblock %}
+            </div>
+
+            <div class="zen-breadcrumb-search">
+              <form
+                action="{% url 'loans:cliente-list' %}"
+                method="get"
+                class="zen-search-form"
+              >
+                <div class="zen-search-input-wrapper">
+                  <i class="fas fa-search"></i>
+                  <input
+                    type="text"
+                    name="search"
+                    placeholder="Buscar clientes..."
+                    class="zen-search-input"
+                  />
+                </div>
+              </form>
+            </div>
           </div>
 
           <!-- Messages -->

@@ -22,18 +22,50 @@
 <!-- Filtros -->
 <div class="zen-card">
     <div class="zen-card-body">
-        <form id="filterForm" method="get" class="filter-form">
-            <div class="filter-form-field">
-                <select name="estado" id="estadoFilter" class="filter-select">
+        <form id="filterForm" method="get" class="filter-form-responsive">
+            <div style="position: relative; flex-grow: 1; max-width: 60%;">
+                <i class="fas fa-filter" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #7f8c8d; font-size: 14px;"></i>
+                <select name="estado" id="estadoFilter" class="filter-select" style="padding-left: 45px; height: 45px; font-size: 15px; border-radius: 8px; width: 100%;">
                     <option value="">Todos los estados</option>
-                    <option value="ACTIVO" {% if request.GET.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
-                    <option value="LIQUIDADO" {% if request.GET.estado == 'LIQUIDADO' %}selected{% endif %}>Liquidado</option>
-                    <option value="CANCELADO" {% if request.GET.estado == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+                    <option value="ACTIVO" {% if request.GET.estado == 'ACTIVO' %}selected{% endif %}>✓ Activo</option>
+                    <option value="LIQUIDADO" {% if request.GET.estado == 'LIQUIDADO' %}selected{% endif %}>✓ Liquidado</option>
+                    <option value="CANCELADO" {% if request.GET.estado == 'CANCELADO' %}selected{% endif %}>✗ Cancelado</option>
                 </select>
             </div>
+            {% if request.GET.estado %}
+            <a href="{% url 'loans:prestamo-list' %}" class="zen-btn zen-btn-outline" style="height: 45px; padding: 0 20px; border-radius: 8px; white-space: nowrap;" title="Limpiar filtro">
+                <i class="fas fa-times"></i> <span class="hide-mobile">Limpiar</span>
+            </a>
+            {% endif %}
         </form>
     </div>
 </div>
+
+<style>
+.filter-form-responsive {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .filter-form-responsive {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .filter-form-responsive > div:first-child {
+        max-width: 100% !important;
+        width: 100%;
+    }
+    
+    .filter-form-responsive a {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
 
 <!-- Tabla de Préstamos -->
 <div class="zen-card">

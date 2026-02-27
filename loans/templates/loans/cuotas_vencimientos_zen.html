@@ -176,13 +176,13 @@
 {% endif %}
 
 <!-- Modal para Pago -->
-<div id="pagoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
-            <button onclick="closeModal('pagoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+<div id="pagoModal" class="zen-modal">
+    <div class="zen-modal-content">
+        <div class="zen-modal-header">
+            <h3 class="zen-modal-title"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
+            <button onclick="closeModal('pagoModal')" class="zen-modal-close">&times;</button>
         </div>
-        <div id="pagoModalBody" style="padding: 20px;">
+        <div id="pagoModalBody" class="zen-modal-body">
             <!-- El formulario se cargará aquí -->
         </div>
     </div>
@@ -192,12 +192,39 @@
 {% block extra_js %}
 <script>
 function loadPagoForm(url) {
+    console.log('loadPagoForm llamada con URL:', url);
+    console.log('jQuery disponible:', typeof $ !== 'undefined');
+    
+    // Guardar la URL para el submit del formulario
+    window.pagoFormUrl = url;
+    
     $.ajax({
         url: url,
         type: 'GET',
+        beforeSend: function() {
+            console.log('Enviando petición AJAX...');
+        },
         success: function(data) {
+            console.log('Formulario cargado exitosamente, longitud:', data.length);
             $('#pagoModalBody').html(data);
             $('#pagoModal').css('display', 'flex');
+            console.log('Modal debe estar visible ahora');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            if (xhr.status === 404) {
+                alert('Error: No se encontró la cuota. Por favor recargue la página.');
+            } else if (xhr.status === 403 || xhr.status === 401) {
+                alert('Error: No tiene permisos. Por favor inicie sesión nuevamente.');
+                window.location.href = '{% url "loans:login" %}';
+            } else {
+                alert('Error al cargar el formulario de pago (' + xhr.status + '). Por favor intente nuevamente.');
+            }
         }
     });
 }

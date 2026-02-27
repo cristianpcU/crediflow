@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import timedelta
 from decimal import Decimal
+import math
 
 
 class Cliente(models.Model):
@@ -15,6 +16,7 @@ class Cliente(models.Model):
     apellidos = models.CharField(max_length=100, verbose_name="Apellidos")
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
     telefono = models.CharField(max_length=15, verbose_name="Teléfono")
+    telefono2 = models.CharField(max_length=15, blank=True, null=True, verbose_name="Teléfono 2")
     direccion = models.TextField(blank=True, null=True, verbose_name="Dirección")
     fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Registro")
     activo = models.BooleanField(default=True, verbose_name="Activo")
@@ -64,7 +66,27 @@ class Prestamo(models.Model):
         max_digits=5, 
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('100'))],
-        verbose_name="Tasa de Interés Mensual (%)"
+        verbose_name="Tasa de Interés Mensual (%)",
+        blank=True,
+        null=True
+    )
+    monto_interes_mensual = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Monto Interés Mensual ($)",
+        blank=True,
+        null=True,
+        help_text="Define el monto mensual a cobrar como interés. El porcentaje se calculará automáticamente"
+    )
+    interes_total_fijo = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0'))],
+        verbose_name="Interés Total ($)",
+        blank=True,
+        null=True,
+        help_text="Si defines este valor, se usará en lugar de calcular por porcentaje"
     )
     duracion_meses = models.PositiveIntegerField(
         validators=[MinValueValidator(1)],
@@ -96,7 +118,24 @@ class Prestamo(models.Model):
 
     @property
     def interes_total(self):
-        return self.monto_principal * (self.tasa_interes_mensual / 100) * self.duracion_meses
+        # Prioridad 1: Si se definió un interés total fijo, usarlo
+        if self.interes_total_fijo is not None:
+            return self.interes_total_fijo
+        # Prioridad 2: Si se definió un monto mensual de interés, calcular total
+        if self.monto_interes_mensual is not None:
+            return self.monto_interes_mensual * self.duracion_meses
+        # Prioridad 3: Calcular por porcentaje
+        if self.tasa_interes_mensual is not None:
+            return self.monto_principal * (self.tasa_interes_mensual / 100) * self.duracion_meses
+        return Decimal('0')
+    
+    @property
+    def porcentaje_interes_calculado(self):
+        """Calcula el porcentaje de interés basado en el monto mensual definido"""
+        if self.monto_interes_mensual is not None and self.monto_principal > 0:
+            # Porcentaje = (Monto Mensual / Monto Principal) * 100
+            return (self.monto_interes_mensual / self.monto_principal) * 100
+        return self.tasa_interes_mensual or Decimal('0')
 
     @property
     def total_gastos(self):
@@ -120,10 +159,10 @@ class Prestamo(models.Model):
         # Eliminar cuotas existentes si las hay
         self.cuotas.all().delete()
         
-        # Calcular valores por cuota
-        interes_por_cuota = self.interes_total / self.duracion_meses
-        capital_por_cuota = self.monto_principal / self.duracion_meses
-        valor_cuota = self.valor_cuota
+        # Calcular valores por cuota y redondear al entero superior
+        interes_por_cuota = Decimal(str(math.ceil(float(self.interes_total / self.duracion_meses))))
+        capital_por_cuota = Decimal(str(math.ceil(float(self.monto_principal / self.duracion_meses))))
+        valor_cuota = Decimal(str(math.ceil(float(self.valor_cuota))))
         
         # Crear cuotas
         for i in range(1, self.duracion_meses + 1):
@@ -238,6 +277,16 @@ class Cuota(models.Model):
     def dias_hasta_vencimiento(self):
         delta = self.fecha_vencimiento - timezone.now().date()
         return delta.days
+    
+    @property
+    def dias_mora(self):
+        """Calcula los días de mora si el pago se realizó con retraso"""
+        if self.estado == 'PAGADO' and self.fecha_pago:
+            # Si se pagó después de la fecha de vencimiento
+            if self.fecha_pago > self.fecha_vencimiento:
+                delta = self.fecha_pago - self.fecha_vencimiento
+                return delta.days
+        return 0
 
     def esta_vencida(self):
         return self.fecha_vencimiento < timezone.now().date() and self.estado != 'PAGADO'
