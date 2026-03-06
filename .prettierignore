@@ -1,2 +1,0 @@
-# Ignorar templates Django para evitar que Prettier rompa los tags
-**/templates/**/*.html

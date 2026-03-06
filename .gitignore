@@ -203,9 +203,26 @@ local_settings.py
 .env.local
 .env.*.local
 
-# Test files (uncomment if you don't want to version test scripts)
-# test_*.py
-# *_test.py
+# Test files - Development scripts not needed for production
+test_*.py
+*_test.py
+
+# Development documentation - Not needed for production
+ENTORNO_VIRTUAL.md
+MOBILE_FIRST_GUIDE.md
+REFACTORING_ESTILOS.md
+SISTEMA_ROLES.md
+SOLUCION_PRESTAMO_FORM.md
+
+# Development scripts - Not needed for production
+activate_venv.sh
+create_superuser.py
+
+# Prettier configuration - Development tool
+.prettierignore
+
+# Templates directory - Empty, not used
+templates/
 
 # Migrations (uncomment ONLY if you're sure you want to ignore migrations)
 # Be careful with this - usually you SHOULD version migrations
