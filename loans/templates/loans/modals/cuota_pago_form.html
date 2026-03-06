@@ -3,12 +3,46 @@
 
 <form id="pagoForm" method="post" action="">
     {% csrf_token %}
+
+    {% if cuota.estado == 'PARCIAL' %}
+    <div style="margin-bottom: 15px; padding: 12px; background: #fff5f5; border-left: 4px solid #ee5a6f; border-radius: 4px;">
+        <p style="margin: 0 0 8px 0; font-weight: 600; color: #ee5a6f;">
+            <i class="fas fa-exclamation-triangle"></i> Pago Parcial Pendiente
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 13px;">
+            <div>
+                <small style="color: #7f8c8d;">Total Cuota</small><br>
+                <strong>${{ cuota.monto_total|floatformat:2 }}</strong>
+            </div>
+            <div>
+                <small style="color: #7f8c8d;">Ya Pagado</small><br>
+                <strong style="color: #5dd39e;">${{ cuota.monto_pagado|floatformat:2 }}</strong>
+            </div>
+            <div>
+                <small style="color: #7f8c8d;">Saldo Pendiente</small><br>
+                <strong style="color: #ee5a6f; font-size: 16px;">${{ cuota.saldo_pendiente|floatformat:2 }}</strong>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="margin-bottom: 15px; padding: 12px; background: #f5f7fa; border-radius: 6px;">
+        <p style="margin: 0; color: #7f8c8d; font-size: 13px;">
+            <i class="fas fa-info-circle"></i> Cuota #{{ cuota.numero_cuota }} — Total: <strong>${{ cuota.monto_total|floatformat:2 }}</strong>
+        </p>
+    </div>
+    {% endif %}
+
     <div class="mb-3">
         <label for="{{ form.monto_pagado.id_for_label }}" class="form-label">{{ form.monto_pagado.label }}</label>
         {% render_field form.monto_pagado class="form-control" %}
         {% if form.monto_pagado.errors %}
             <div class="text-danger">{{ form.monto_pagado.errors }}</div>
         {% endif %}
+        <div id="advertenciaParcial" style="display: none; margin-top: 8px; padding: 10px; background: #fff5f5; border: 1px solid #ee5a6f; border-radius: 4px;">
+            <p style="margin: 0; color: #ee5a6f; font-weight: 600; font-size: 13px;">
+                <i class="fas fa-exclamation-triangle"></i> Pago parcial — Quedará debiendo: <strong id="saldoRestante">$0.00</strong>
+            </p>
+        </div>
     </div>
     
     <div class="mb-3">
@@ -35,16 +69,63 @@
 
 <script>
 $(document).ready(function() {
+    // Valores de la cuota
+    var montoCuota = parseFloat('{{ cuota.monto_total }}') || 0;
+    var yaPagado = parseFloat('{{ cuota.monto_pagado }}') || 0;
+    var saldoPendiente = montoCuota - yaPagado;
+
     // Establecer fecha actual por defecto
     var today = new Date().toISOString().split('T')[0];
     $('#id_fecha_pago').val(today);
-    
+
+    // Mostrar advertencia en tiempo real cuando el monto es menor al saldo
+    $('#id_monto_pagado').on('input change', function() {
+        var montoPago = parseFloat($(this).val()) || 0;
+
+        if (montoPago > 0 && montoPago < saldoPendiente) {
+            var restante = saldoPendiente - montoPago;
+            $('#saldoRestante').text('$' + restante.toFixed(2));
+            $('#advertenciaParcial').slideDown(200);
+            $(this).css('border-color', '#ee5a6f');
+        } else {
+            $('#advertenciaParcial').slideUp(200);
+            $(this).css('border-color', '');
+        }
+    });
+
+    // Submit con confirmación si es pago parcial
     $('#pagoForm').on('submit', function(e) {
         e.preventDefault();
+
+        var montoPago = parseFloat($('#id_monto_pagado').val()) || 0;
+
+        if (montoPago <= 0) {
+            alert('El monto pagado debe ser mayor a cero');
+            return;
+        }
+
+        // Si es pago parcial, pedir confirmación
+        if (montoPago < saldoPendiente) {
+            var restante = saldoPendiente - montoPago;
+            if (!confirm(
+                '⚠️ Pago Parcial\n\n' +
+                'Monto de la cuota: $' + saldoPendiente.toFixed(2) + '\n' +
+                'Monto a pagar: $' + montoPago.toFixed(2) + '\n' +
+                'Quedará debiendo: $' + restante.toFixed(2) + '\n\n' +
+                '¿Desea continuar con el pago parcial?'
+            )) {
+                return;
+            }
+        }
+
+        var $form = $(this);
+        $('.invalid-feedback').remove();
+        $('.is-invalid').removeClass('is-invalid');
+
         $.ajax({
-            url: $(this).attr('action'),
+            url: $form.attr('action'),
             type: 'POST',
-            data: $(this).serialize(),
+            data: $form.serialize(),
             headers: {'X-Requested-With': 'XMLHttpRequest'},
             success: function(response) {
                 if (response.success) {
@@ -60,6 +141,8 @@ $(document).ready(function() {
                         $('#id_' + field).addClass('is-invalid');
                         $('#id_' + field).after('<div class="invalid-feedback">' + errorMsg + '</div>');
                     }
+                } else {
+                    alert('Error al guardar. Por favor intente nuevamente.');
                 }
             }
         });

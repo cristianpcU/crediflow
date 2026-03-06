@@ -168,26 +168,26 @@
 </div>
 
 <!-- Modal para Cliente -->
-<div id="clienteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-user-edit"></i> Editar Cliente</h3>
-            <button onclick="closeModal('clienteModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+<div id="clienteModal" class="zen-modal" style="display: none;">
+    <div class="zen-modal-content">
+        <div class="zen-modal-header">
+            <h3 class="zen-modal-title"><i class="fas fa-user-edit"></i> Editar Cliente</h3>
+            <button onclick="closeModal('clienteModal')" class="zen-modal-close">&times;</button>
         </div>
-        <div id="clienteModalBody" style="padding: 20px;">
+        <div id="clienteModalBody" class="zen-modal-body">
             <!-- El formulario se cargará aquí -->
         </div>
     </div>
 </div>
 
 <!-- Modal para Préstamo -->
-<div id="prestamoModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 8px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
-        <div style="padding: 20px; background: #2c3e50; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600;"><i class="fas fa-file-invoice-dollar"></i> Nuevo Préstamo</h3>
-            <button onclick="closeModal('prestamoModal')" style="background: none; border: none; font-size: 24px; cursor: pointer; color: white;">&times;</button>
+<div id="prestamoModal" class="zen-modal" style="display: none;">
+    <div class="zen-modal-content">
+        <div class="zen-modal-header">
+            <h3 class="zen-modal-title"><i class="fas fa-file-invoice-dollar"></i> Nuevo Préstamo</h3>
+            <button onclick="closeModal('prestamoModal')" class="zen-modal-close">&times;</button>
         </div>
-        <div id="prestamoModalBody" style="padding: 20px;">
+        <div id="prestamoModalBody" class="zen-modal-body">
             <!-- El formulario se cargará aquí -->
         </div>
     </div>
@@ -199,7 +199,73 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-function loadClienteForm(url) {
+// Definir funciones globales inmediatamente
+window.prestamoFormUrl = '';
+
+window.loadPrestamoForm = function(url) {
+    console.log('=== INICIO loadPrestamoForm ===');
+    console.log('URL:', url);
+    
+    var modal = $('#prestamoModal');
+    console.log('Modal encontrado:', modal.length > 0);
+    
+    // Mostrar loading mientras carga el formulario
+    $('#prestamoModalBody').html('<div style="padding: 40px; text-align: center;"><i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #5b9bd5;"></i><p style="margin-top: 15px;">Cargando formulario...</p></div>');
+    $('#prestamoModal').addClass('show');
+    $('#prestamoModal').css('display', 'flex !important');
+    
+    console.log('Modal mostrado con loading');
+    
+    // Cargar el formulario real via AJAX
+    window.prestamoFormUrl = url;
+    $.ajax({
+        url: url,
+        type: 'GET',
+        beforeSend: function() {
+            console.log('Enviando petición AJAX a:', url);
+        },
+        success: function(data) {
+            console.log('Formulario cargado exitosamente, longitud:', data.length);
+            console.log('Primeros 200 caracteres:', data.substring(0, 200));
+            
+            $('#prestamoModalBody').html(data);
+            console.log('Contenido del formulario actualizado');
+            
+            // Inicializar Select2 si hay campos que lo usan
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('.zen-select2').select2({
+                    dropdownParent: $('#prestamoModal'),
+                    placeholder: "Seleccione un cliente",
+                    width: "100%",
+                });
+                console.log('Select2 inicializado');
+            }
+            
+            console.log('=== FIN loadPrestamoForm ===');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            
+            var errorMsg = 'Error al cargar formulario';
+            if (xhr.status === 404) {
+                errorMsg = 'No se encontró la URL del formulario';
+            } else if (xhr.status === 403 || xhr.status === 401) {
+                errorMsg = 'No tiene permisos para acceder';
+            } else if (xhr.status === 500) {
+                errorMsg = 'Error interno del servidor';
+            }
+            
+            $('#prestamoModalBody').html('<div style="padding: 40px; text-align: center; color: #ee5a6f;"><i class="fas fa-exclamation-triangle" style="font-size: 48px;"></i><h3 style="margin: 15px 0;">' + errorMsg + '</h3><p>Código: ' + xhr.status + '</p><button onclick="location.reload()" class="zen-btn zen-btn-primary">Recargar página</button></div>');
+        }
+    });
+};
+
+window.loadClienteForm = function(url) {
     // Guardar la URL para el submit del formulario
     window.clienteFormUrl = url;
     
@@ -208,30 +274,154 @@ function loadClienteForm(url) {
         type: 'GET',
         success: function(data) {
             $('#clienteModalBody').html(data);
-            $('#clienteModal').css('display', 'flex');
+            $('#clienteModal').addClass('show');
         },
         error: function(xhr) {
             alert('Error al cargar el formulario. Por favor intente nuevamente.');
         }
     });
+};
+
+// Verificar que las funciones estén disponibles cuando el DOM esté listo
+$(document).ready(function() {
+    console.log('DOM listo');
+    console.log('loadPrestamoForm disponible:', typeof window.loadPrestamoForm);
+    console.log('loadClienteForm disponible:', typeof window.loadClienteForm);
+    
+    // Verificar que los modales existan
+    console.log('Modal préstamo existe:', $('#prestamoModal').length > 0);
+    console.log('Modal cliente existe:', $('#clienteModal').length > 0);
+});
+
+// Función de prueba para mostrar el modal manualmente
+function testModal() {
+    console.log('Probando modal manualmente...');
+    $('#prestamoModalBody').html('<div style="padding: 20px;"><h3>Test Modal</h3><p>Este es un test</p><button onclick="testClose()" class="zen-btn zen-btn-primary">Probar Cerrar</button></div>');
+    $('#prestamoModal').addClass('show');
+    $('#prestamoModal').css('display', 'flex !important');
+    console.log('Modal mostrado manualmente');
 }
 
-var prestamoFormUrl = '';
+// Función de prueba para cerrar modal manualmente
+function testClose() {
+    console.log('=== INICIO TEST CLOSE ===');
+    console.log('Cerrando modal manualmente...');
+    
+    var modal = $('#prestamoModal');
+    console.log('Modal encontrado:', modal.length > 0);
+    console.log('Classes antes:', modal.attr('class'));
+    
+    closeModal('prestamoModal');
+    
+    console.log('Classes después:', modal.attr('class'));
+    console.log('Display después:', modal.css('display'));
+    console.log('=== FIN TEST CLOSE ===');
+}
 
-function loadPrestamoForm(url) {
-    prestamoFormUrl = url;
-    $.ajax({
-        url: url,
-        type: 'GET',
-        success: function(data) {
-            $('#prestamoModalBody').html(data);
-            $('#prestamoModal').css('display', 'flex');
-        },
-        error: function() {
-            alert('Error al cargar el formulario');
+// Función de depuración paso a paso
+window.debugModal = function() {
+    console.log('=== DEBUG MODAL COMPLETO ===');
+    
+    var modal = $('#prestamoModal');
+    console.log('1. Modal encontrado:', modal.length > 0);
+    
+    if (modal.length > 0) {
+        console.log('2. Modal HTML completo:', modal[0].outerHTML.substring(0, 200) + '...');
+        
+        // Buscar botones
+        console.log('3. Botones X encontrados:', modal.find('.zen-modal-close').length);
+        modal.find('.zen-modal-close').each(function(i) {
+            console.log('   Botón X ' + i + ':', this.outerHTML);
+        });
+        
+        console.log('4. Botones Cancelar encontrados:', modal.find('.zen-btn-outline').length);
+        modal.find('.zen-btn-outline').each(function(i) {
+            console.log('   Botón Cancelar ' + i + ':', this.outerHTML);
+        });
+        
+        // Estado actual
+        console.log('5. Estado actual:');
+        console.log('   - Classes:', modal.attr('class'));
+        console.log('   - Display:', modal.css('display'));
+        console.log('   - Visibility:', modal.css('visibility'));
+        console.log('   - Opacity:', modal.css('opacity'));
+        console.log('   - Z-index:', modal.css('z-index'));
+        
+        // Simular clic en X
+        console.log('6. Simulando clic en botón X...');
+        var xButton = modal.find('.zen-modal-close').first();
+        if (xButton.length > 0) {
+            console.log('   - Botón X encontrado, haciendo clic...');
+            xButton.trigger('click');
+        } else {
+            console.log('   - ERROR: No se encontró botón X');
         }
+        
+        // Verificar estado después del clic
+        setTimeout(function() {
+            console.log('7. Estado después de clic en X:');
+            console.log('   - Classes:', modal.attr('class'));
+            console.log('   - Display:', modal.css('display'));
+            console.log('   - Visibility:', modal.css('visibility'));
+        }, 100);
+    }
+    
+    console.log('=== FIN DEBUG MODAL ===');
+};
+
+// Hacer funciones globales para prueba desde consola
+window.testModal = testModal;
+window.testClose = testClose;
+
+// Función para resetear el modal a su estado original
+window.resetModal = function(modalId) {
+    console.log('=== RESETEANDO MODAL ===');
+    var modal = $('#' + modalId);
+    
+    // Limpiar todos los estilos
+    modal.removeAttr('style');
+    
+    // Remover clases temporales
+    modal.removeClass('show hidden');
+    
+    // Restaurar posición original
+    modal.css({
+        'position': '',
+        'left': '',
+        'top': ''
     });
-}
+    
+    // Asegurar que esté oculto por defecto
+    modal.css('display', 'none');
+    
+    console.log('Modal reseteado');
+};
+
+// La función closeModal ahora está definida en base_zen.html para ser global
+
+// Los eventos universales ahora están definidos en base_zen.html para ser globales
+
+// Prueba directa: agregar evento al cargar el formulario
+$(document).on('DOMNodeInserted', function(e) {
+    if ($(e.target).hasClass('zen-modal-body')) {
+        console.log('Modal body insertado, re-binding events');
+        
+        // Re-bind events para los nuevos elementos
+        $(e.target).find('.zen-modal-close').off('click').on('click', function(e) {
+            e.preventDefault();
+            console.log('X button clicked (re-bound)');
+            $('.zen-modal').removeClass('show').css('display', 'none');
+        });
+        
+        $(e.target).find('.zen-btn-outline').off('click').on('click', function(e) {
+            if ($(this).text().includes('Cancelar')) {
+                e.preventDefault();
+                console.log('Cancel button clicked (re-bound)');
+                $('.zen-modal').removeClass('show').css('display', 'none');
+            }
+        });
+    }
+});
 
 // Delegación de eventos para el formulario de préstamo
 $(document).on('submit', '#prestamoForm', function(e) {
@@ -268,7 +458,7 @@ $(document).on('submit', '#prestamoForm', function(e) {
 });
 
 function closeModal(modalId) {
-    $('#' + modalId).css('display', 'none');
+    $('#' + modalId).removeClass('show');
 }
 </script>
 {% endblock %}

@@ -1,0 +1,424 @@
+{% extends 'loans/base_zen.html' %}
+{% load static %}
+
+{% block title %}Revisión de Cobros - CrediFlow{% endblock %}
+
+{% block breadcrumb %}
+<span>/</span>
+<span>Revisión de Cobros</span>
+{% endblock %}
+
+{% block content %}
+<div class="zen-page-header">
+    <div>
+        <h1 class="zen-page-title">Revisión de Cobros</h1>
+        <p class="zen-page-subtitle">Control de cobros realizados en el sistema</p>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="zen-stats-grid">
+    <div class="zen-stat-card">
+        <div class="zen-stat-icon green">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="zen-stat-info">
+            <h3>${{ total_recaudado|floatformat:2 }}</h3>
+            <p>Total Recaudado</p>
+        </div>
+    </div>
+    <div class="zen-stat-card">
+        <div class="zen-stat-icon blue">
+            <i class="fas fa-hand-holding-usd"></i>
+        </div>
+        <div class="zen-stat-info">
+            <h3>{{ total_cobros }}</h3>
+            <p>Cobros Realizados</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="zen-card">
+    <div class="zen-card-header">
+        <h3 class="zen-card-title">
+            <i class="fas fa-filter"></i> Filtros
+        </h3>
+    </div>
+    <div class="zen-card-body">
+        <form method="get" class="filter-form-responsive">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="periodo">Período</label>
+                    <select name="periodo" id="periodo" class="zen-form-control">
+                        <option value="hoy" {% if periodo_actual == 'hoy' %}selected{% endif %}>Hoy</option>
+                        <option value="semana" {% if periodo_actual == 'semana' %}selected{% endif %}>Última Semana</option>
+                        <option value="mes" {% if periodo_actual == 'mes' %}selected{% endif %}>Último Mes</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="cobrador">Cobrador</label>
+                    <select name="cobrador" id="cobrador" class="zen-form-control">
+                        <option value="">Todos los cobradores</option>
+                        {% for cobrador in cobradores %}
+                        <option value="{{ cobrador.id }}" {% if cobrador_actual == cobrador.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cobrador.get_full_name|default:cobrador.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group filter-actions">
+                    <button type="submit" class="zen-btn zen-btn-primary">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'loans:revision-cobros' %}" class="zen-btn zen-btn-outline">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.filter-form-responsive {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 20px;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<!-- Tabla de Cobros -->
+<div class="zen-card">
+    <div class="zen-card-header">
+        <h3 class="zen-card-title">
+            <i class="fas fa-list"></i> Cobros Realizados
+        </h3>
+    </div>
+    <div class="zen-card-body p-0">
+        <div class="zen-table-responsive">
+            <table class="zen-table zen-table-compact">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Préstamo</th>
+                        <th>Cuota</th>
+                        <th>Monto</th>
+                        <th>Cobrador</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cobro in cobros %}
+                    <tr>
+                        <td>
+                            {% if cobro.fecha_pago %}
+                            <!-- Mostrar fecha directamente -->
+                            <div style="background: #f7b731; color: white; padding: 4px 8px; border-radius: 4px; display: inline-block; margin: 2px 0;">
+                                <i class="fas fa-calendar-alt" style="margin-right: 4px;"></i>
+                                {{ cobro.fecha_pago }}
+                            </div>
+                            {% else %}
+                            <div class="fecha-info">
+                                <i class="fas fa-calendar-times" style="color: #7f8c8d; margin-right: 6px;"></i>
+                                <span class="badge badge-secondary">Sin fecha</span>
+                                <!-- Debug: mostrar información del campo -->
+                                <small style="display: block; color: #95a5a6; font-size: 10px; margin-top: 2px;">
+                                    Cuota #{{ cobro.numero_cuota }} - Estado: {{ cobro.estado }} | Monto pagado: ${{ cobro.monto_pagado|default:"0" }}
+                                </small>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="cliente-info">
+                                <strong>{{ cobro.prestamo.cliente }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="prestamo-info">
+                                <span class="badge badge-blue">#{{ cobro.prestamo.id }}</span>
+                                <small class="text-muted d-block">${{ cobro.prestamo.monto_principal|floatformat:2 }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cuota-info">
+                                <strong>Cuota #{{ cobro.numero_cuota }}</strong>
+                                {% if cobro.estado == 'PARCIAL' %}
+                                <span class="badge badge-warning">Parcial</span>
+                                {% else %}
+                                <span class="badge badge-success">Completo</span>
+                                {% endif %}
+                                <small class="text-muted d-block">Venc: {{ cobro.fecha_vencimiento|date:"d/m/Y" }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>${{ cobro.monto_pagado|floatformat:2 }}</strong>
+                            {% if cobro.estado == 'PARCIAL' %}
+                            <small class="text-muted">/ ${{ cobro.monto_total|floatformat:2 }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cobro.cobrador %}
+                            <div class="cobrador-info">
+                                <i class="fas fa-user-circle text-muted"></i>
+                                {{ cobro.cobrador.get_full_name|default:cobro.cobrador.username }}
+                            </div>
+                            {% else %}
+                            <span class="badge badge-secondary">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cobro.notas %}
+                            <span class="text-muted" title="{{ cobro.notas }}">
+                                {% if cobro.notas|length > 30 %}
+                                {{ cobro.notas|truncatechars:30 }}...
+                                {% else %}
+                                {{ cobro.notas }}
+                                {% endif %}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-receipt empty-state-icon"></i>
+                            <div>
+                                <strong>No hay cobros registrados</strong>
+                                <p style="margin: 5px 0 0 0; font-size: 12px; color: #7f8c8d;">
+                                    No se encontraron cobros en el período seleccionado. 
+                                    {% if periodo_actual == 'hoy' %}Intenta con "Última Semana" o "Último Mes".{% endif %}
+                                    {% if periodo_actual == 'semana' %}Intenta con "Último Mes" o selecciona un período mayor.{% endif %}
+                                    {% if periodo_actual == 'mes' %}Intenta con "Última Semana" o ver todos los períodos.{% endif %}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<div class="zen-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page=1{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}{% if request.GET.cobrador %}&cobrador={{ request.GET.cobrador }}{% endif %}" class="zen-pagination-link">Primera</a>
+    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}{% if request.GET.cobrador %}&cobrador={{ request.GET.cobrador }}{% endif %}" class="zen-pagination-link">Anterior</a>
+    {% endif %}
+    
+    <span class="zen-pagination-info">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}{% if request.GET.cobrador %}&cobrador={{ request.GET.cobrador }}{% endif %}" class="zen-pagination-link">Siguiente</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}{% if request.GET.cobrador %}&cobrador={{ request.GET.cobrador }}{% endif %}" class="zen-pagination-link">Última</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Estilos adicionales -->
+<style>
+.cliente-info {
+    font-size: 14px;
+}
+
+.prestamo-info {
+    font-size: 13px;
+}
+
+.prestamo-info .badge-primary {
+    background: #5dd39e;
+    color: white;
+    font-size: 11px;
+    padding: 3px 6px;
+}
+
+.cuota-info {
+    font-size: 13px;
+}
+
+.cuota-info strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.badge-date {
+    background: #f7b731;
+    color: #2c3e50;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-primary {
+    background: #5b9bd5;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.badge-blue {
+    background: #5b9bd5;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #5dd39e;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.badge-warning {
+    background: #ee5a6f;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+.badge-orange {
+    background: #f7b731;
+    color: #2c3e50;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-secondary {
+    background: #7f8c8d;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.cliente-info {
+    font-size: 13px;
+}
+
+.prestamo-info {
+    font-size: 12px;
+}
+
+.cuota-info {
+    font-size: 12px;
+}
+
+.cobrador-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.cobrador-info i {
+    font-size: 14px;
+}
+
+.fecha-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.fecha-info i {
+    font-size: 14px;
+}
+
+.zen-table td {
+    vertical-align: top;
+    padding: 12px 8px;
+}
+
+.zen-table .text-muted {
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    color: #e8ecef;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.empty-state strong {
+    font-size: 16px;
+    color: #495057;
+    display: block;
+    margin-bottom: 8px;
+}
+</style>
+
+<!-- Auto-submit de filtros -->
+<script>
+$(document).ready(function() {
+    $('#periodo, #cobrador').on('change', function() {
+        $(this).closest('form').submit();
+    });
+});
+</script>
+{% endblock %}

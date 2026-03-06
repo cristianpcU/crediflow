@@ -1,0 +1,331 @@
+{% extends "loans/base_zen.html" %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="zen-container">
+  <!-- Header -->
+  <div class="zen-page-header">
+    <div class="zen-page-title">
+      <i class="fas fa-users"></i>
+      <div>
+        <h1>Gestión de Usuarios</h1>
+        <p>Administrar usuarios del sistema</p>
+      </div>
+    </div>
+    <div class="zen-page-actions">
+      <button type="button" class="zen-btn zen-btn-primary" onclick="loadUsuarioForm('{% url 'loans:usuario-create' %}')">
+        <i class="fas fa-plus"></i> Nuevo Usuario
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="zen-stats-grid">
+    <div class="zen-stat-card">
+      <div class="zen-stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="zen-stat-content">
+        <div class="zen-stat-number">{{ total_usuarios }}</div>
+        <div class="zen-stat-label">Total Usuarios</div>
+      </div>
+    </div>
+    <div class="zen-stat-card">
+      <div class="zen-stat-icon" style="background: linear-gradient(135deg, #5dd39e 0%, #3d9970 100%);">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="zen-stat-content">
+        <div class="zen-stat-number">{{ usuarios_activos }}</div>
+        <div class="zen-stat-label">Usuarios Activos</div>
+      </div>
+    </div>
+    <div class="zen-stat-card">
+      <div class="zen-stat-icon" style="background: linear-gradient(135deg, #ee5a6f 0%, #c44569 100%);">
+        <i class="fas fa-user-times"></i>
+      </div>
+      <div class="zen-stat-content">
+        <div class="zen-stat-number">{{ total_usuarios|add:"-"|add:usuarios_activos }}</div>
+        <div class="zen-stat-label">Usuarios Inactivos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="zen-card">
+    <div class="zen-card-header">
+      <h3 class="zen-card-title">
+        <i class="fas fa-list"></i> Lista de Usuarios
+      </h3>
+    </div>
+    <div class="zen-card-body" style="padding: 0">
+      <div class="zen-table-responsive">
+        <table class="zen-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th>Fecha Registro</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">
+                    {% if usuario.first_name %}
+                      {{ usuario.first_name.0|upper }}{{ usuario.last_name.0|upper }}
+                    {% else %}
+                      {{ usuario.username.0|upper }}
+                    {% endif %}
+                  </div>
+                  <strong>{{ usuario.username }}</strong>
+                </div>
+              </td>
+              <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+              <td>{{ usuario.email|default:"Sin email" }}</td>
+              <td>
+                {% if usuario.is_superuser %}
+                  <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <i class="fas fa-crown"></i> Superuser
+                  </span>
+                {% elif usuario.is_staff %}
+                  <span class="badge" style="background: linear-gradient(135deg, #f7b731 0%, #f5a623 100%); color: white;">
+                    <i class="fas fa-user-shield"></i> Staff
+                  </span>
+                {% else %}
+                  <span class="badge" style="background: linear-gradient(135deg, #5dd39e 0%, #3d9970 100%); color: white;">
+                    <i class="fas fa-user"></i> Usuario
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if usuario.is_active %}
+                  <span class="status-badge status-active">
+                    <i class="fas fa-check-circle"></i> Activo
+                  </span>
+                {% else %}
+                  <span class="status-badge status-inactive">
+                    <i class="fas fa-times-circle"></i> Inactivo
+                  </span>
+                {% endif %}
+              </td>
+              <td>{{ usuario.date_joined|date:"d/m/Y" }}</td>
+              <td>
+                <div class="action-buttons">
+                  <a href="{% url 'loans:usuario-detail' usuario.pk %}" class="zen-btn zen-btn-sm zen-btn-outline" title="Ver detalles">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <button type="button" class="zen-btn zen-btn-sm zen-btn-outline" onclick="loadUsuarioForm('{% url 'loans:usuario-update' usuario.pk %}')" title="Editar">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  {% if usuario != request.user %}
+                    <a href="{% url 'loans:usuario-delete' usuario.pk %}" class="zen-btn zen-btn-sm zen-btn-danger" title="Eliminar">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px;">
+                <i class="fas fa-users" style="font-size: 48px; color: #e8ecef; margin-bottom: 16px;"></i>
+                <p style="color: #7f8c8d;">No hay usuarios registrados</p>
+                <button type="button" class="zen-btn zen-btn-primary" onclick="loadUsuarioForm('{% url 'loans:usuario-create' %}')">
+                  <i class="fas fa-plus"></i> Crear Primer Usuario
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <div class="zen-pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page=1" class="zen-pagination-link">
+        <i class="fas fa-angle-double-left"></i>
+      </a>
+      <a href="?page={{ page_obj.previous_page_number }}" class="zen-pagination-link">
+        <i class="fas fa-angle-left"></i>
+      </a>
+    {% endif %}
+    
+    <span class="zen-pagination-info">
+      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="zen-pagination-link">
+        <i class="fas fa-angle-right"></i>
+      </a>
+      <a href="?page={{ page_obj.paginator.num_pages }}" class="zen-pagination-link">
+        <i class="fas fa-angle-double-right"></i>
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+}
+</style>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+
+<script>
+function loadUsuarioForm(url) {
+  fetch(url)
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('modalContainer').innerHTML = html;
+      document.getElementById('usuarioModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    })
+    .catch(error => {
+      console.error('Error loading form:', error);
+      showNotification('Error al cargar el formulario', 'error');
+    });
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  modal.style.display = 'none';
+  document.body.style.overflow = 'auto';
+  
+  // Limpiar el contenedor del modal después de cerrar
+  setTimeout(() => {
+    document.getElementById('modalContainer').innerHTML = '';
+  }, 300);
+}
+
+function showNotification(message, type) {
+  // Crear elemento de notificación
+  const notification = document.createElement('div');
+  notification.className = `zen-notification zen-notification-${type}`;
+  notification.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+    <span>${message}</span>
+  `;
+  
+  // Agregar estilos si no existen
+  if (!document.querySelector('#notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+      .zen-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        padding: 12px 16px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 10000;
+        max-width: 300px;
+        font-size: 14px;
+      }
+      .zen-notification-success {
+        border-left: 4px solid #28a745;
+        color: #28a745;
+      }
+      .zen-notification-error {
+        border-left: 4px solid #dc3545;
+        color: #dc3545;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  document.body.appendChild(notification);
+  
+  // Eliminar después de 3 segundos
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+// Cerrar modal al hacer clic fuera
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('usuarioModal');
+  if (event.target === modal) {
+    closeModal('usuarioModal');
+  }
+});
+
+// Cerrar modal con la tecla Escape
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    const modal = document.getElementById('usuarioModal');
+    if (modal && modal.style.display === 'block') {
+      closeModal('usuarioModal');
+    }
+  }
+});
+</script>
+{% endblock %}

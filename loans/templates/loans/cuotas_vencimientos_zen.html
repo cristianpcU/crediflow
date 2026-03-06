@@ -176,7 +176,7 @@
 {% endif %}
 
 <!-- Modal para Pago -->
-<div id="pagoModal" class="zen-modal">
+<div id="pagoModal" class="zen-modal" style="display: none;">
     <div class="zen-modal-content">
         <div class="zen-modal-header">
             <h3 class="zen-modal-title"><i class="fas fa-money-bill-wave"></i> Registrar Pago</h3>
@@ -207,7 +207,7 @@ function loadPagoForm(url) {
         success: function(data) {
             console.log('Formulario cargado exitosamente, longitud:', data.length);
             $('#pagoModalBody').html(data);
-            $('#pagoModal').css('display', 'flex');
+            $('#pagoModal').addClass('show');
             console.log('Modal debe estar visible ahora');
         },
         error: function(xhr, status, error) {
@@ -230,7 +230,7 @@ function loadPagoForm(url) {
 }
 
 function closeModal(modalId) {
-    $('#' + modalId).css('display', 'none');
+    $('#' + modalId).removeClass('show');
 }
 
 // Auto-submit del formulario al cambiar el filtro de días

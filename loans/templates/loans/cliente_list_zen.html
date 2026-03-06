@@ -234,7 +234,7 @@
 {% endif %}
 
 <!-- Modal para Cliente -->
-<div id="clienteModal" class="zen-modal">
+<div id="clienteModal" class="zen-modal" style="display: none;">
   <div class="zen-modal-content">
     <div class="zen-modal-header">
       <h3 class="zen-modal-title"><i class="fas fa-user"></i> Cliente</h3>
@@ -258,7 +258,7 @@
       type: "GET",
       success: function (data) {
         $("#clienteModalBody").html(data);
-        $("#clienteModal").css("display", "flex");
+        $("#clienteModal").addClass("show");
       },
       error: function (xhr) {
         alert("Error al cargar el formulario. Por favor intente nuevamente.");
@@ -267,7 +267,7 @@
   }
 
   function closeModal(modalId) {
-    $("#" + modalId).css("display", "none");
+    $("#" + modalId).removeClass("show");
   }
 </script>
 {% endblock %}

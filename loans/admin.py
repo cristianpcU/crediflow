@@ -145,7 +145,7 @@ class CuotaAdmin(admin.ModelAdmin):
     get_estado_display.short_description = 'Estado'
     
     def get_dias_vencimiento(self, obj):
-        dias = obj.dias_hasta_vencimiento()
+        dias = obj.dias_hasta_vencimiento
         if dias < 0:
             return format_html('<span style="color: red;">Vencida ({} días)</span>', abs(dias))
         elif dias <= 7:

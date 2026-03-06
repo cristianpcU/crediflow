@@ -1,0 +1,105 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Modal" }} - CrediFlow</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Zen Theme CSS -->
+    <link rel="stylesheet" href="{% static 'loans/css/zen-theme.css' %}">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .zen-modal-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .zen-modal-wrapper {
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .zen-modal-wrapper {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="zen-modal-wrapper">
+        <div class="zen-modal-content">
+            <div class="zen-modal-header">
+                <h2 class="zen-modal-title">{{ title|default:"Formulario" }}</h2>
+                <button type="button" class="zen-modal-close" onclick="window.close()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="zen-modal-body">
+                {% block modal_content %}
+                {% endblock %}
+            </div>
+            
+            {% if footer_buttons %}
+            <div class="zen-modal-footer">
+                {% for button in footer_buttons %}
+                <button type="{{ button.type|default:'button' }}" 
+                        class="zen-btn zen-btn-{{ button.variant|default:'secondary' }}"
+                        {% if button.onclick %}onclick="{{ button.onclick }}"{% endif %}
+                        {% if button.id %}id="{{ button.id }}"{% endif %}>
+                    {% if button.icon %}<i class="fas fa-{{ button.icon }}"></i>{% endif %}
+                    {{ button.text }}
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Auto-resize modal content
+        function resizeModal() {
+            const content = document.querySelector('.zen-modal-content');
+            const wrapper = document.querySelector('.zen-modal-wrapper');
+            
+            if (content && wrapper) {
+                const maxHeight = window.innerHeight * 0.9;
+                content.style.maxHeight = maxHeight + 'px';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            resizeModal();
+            window.addEventListener('resize', resizeModal);
+        });
+        
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.close();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -34,180 +34,159 @@
     <div class="zen-sidebar-overlay"></div>
 
     <div class="zen-layout">
-      <!-- Sidebar -->
-      <aside class="zen-sidebar" id="sidebar">
-        <div class="zen-sidebar-header">
-          <div class="zen-logo">
-            <i class="fas fa-hand-holding-dollar"></i>
-            <span>CrediFlow</span>
-          </div>
-
-          <!-- Información del usuario -->
-          <div class="user-profile-card">
-            <div class="d-flex align-items-center gap-2 mb-1">
-              <i class="fas fa-user-circle user-profile-icon"></i>
-              <div class="flex-grow-1">
-                <div class="user-profile-name">
-                  {{ request.user.get_full_name|default:request.user.username }}
-                </div>
-                {% if request.user.profile %}
-                <div class="user-profile-role">
-                  <i class="fas fa-shield-alt font-size-sm"></i>
-                  {{request.user.profile.get_rol_display }}
-                </div>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <nav class="zen-nav">
-          <div class="zen-nav-section">
-            <div class="zen-nav-title">Principal</div>
-            <a
-              href="{% url 'loans:dashboard' %}"
-              class="zen-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-            >
-              <i class="fas fa-tachometer-alt"></i>
-              <span>Dashboard</span>
-            </a>
-          </div>
-
-          <div class="zen-nav-section">
-            <div class="zen-nav-title">Gestión</div>
-            <a
-              href="{% url 'loans:cliente-list' %}"
-              class="zen-nav-item {% if 'cliente' in request.path %}active{% endif %}"
-            >
-              <i class="fas fa-users"></i>
-              <span>Clientes</span>
-            </a>
-            <a
-              href="{% url 'loans:prestamo-list' %}"
-              class="zen-nav-item {% if 'prestamo' in request.path %}active{% endif %}"
-            >
-              <i class="fas fa-file-invoice-dollar"></i>
-              <span>Préstamos</span>
-            </a>
-          </div>
-
-          <div class="zen-nav-section">
-            <div class="zen-nav-title">Cuotas</div>
-            <a href="{% url 'loans:cuotas-proximas' %}" class="zen-nav-item">
-              <i class="fas fa-clock"></i>
-              <span>Próximas a Vencer</span>
-              <span class="zen-nav-badge badge-new">NEW</span>
-            </a>
-            <a
-              href="{% url 'loans:cuotas-vencidas' %}"
-              class="zen-nav-item {% if request.path == '/cuotas/vencidas/' %}active{% endif %}"
-            >
-              <i class="fas fa-exclamation-triangle"></i>
-              <span>Cuotas Vencidas</span>
-            </a>
-
-            <div
-              class="mt-4 pt-4"
-              style="border-top: 1px solid rgba(255, 255, 255, 0.1)"
-            >
-              <a
-                href="{% url 'loans:logout' %}"
-                class="zen-nav-item text-danger"
-              >
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Cerrar Sesión</span>
-              </a>
-            </div>
-          </div>
-
-          <div class="zen-nav-section">
-            <div class="zen-nav-title">Sistema</div>
-            <a href="/admin/" class="zen-nav-item">
-              <i class="fas fa-cog"></i>
-              <span>Administración</span>
-            </a>
-          </div>
-        </nav>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="zen-main">
-        <!-- Header -->
-        <header class="zen-header">
-          <div class="zen-header-left">
-            <h2 class="zen-header-title">
-              {% block page_title %}CrediFlow{% endblock %}
-            </h2>
-          </div>
-
-          <div class="zen-header-right">
-            <div class="zen-header-icon">
-              <i class="fas fa-bell"></i>
-              <span class="badge">3</span>
-            </div>
-            <div class="zen-header-icon">
-              <i class="fas fa-envelope"></i>
-            </div>
-            <div class="zen-user">
-              <div class="zen-user-avatar">
-                <i class="fas fa-user"></i>
-              </div>
-              <span class="zen-user-name"
-                >{{ request.user.get_full_name|default:request.user.username}}</span
-              >
-              <i
-                class="fas fa-chevron-down"
-                style="font-size: 10px; color: #7f8c8d"
-              ></i>
-            </div>
-          </div>
-        </header>
-
-        <!-- Content -->
-        <div class="zen-content">
-          <!-- Breadcrumb con Búsqueda -->
-          <div class="zen-breadcrumb-search-container">
-            <div class="zen-breadcrumb">
-              <i class="fas fa-home"></i>
-              <span>/</span>
-              <a href="{% url 'loans:dashboard' %}">Dashboard</a>
-              {% block breadcrumb %}{% endblock %}
-            </div>
-
-            <div class="zen-breadcrumb-search">
-              <form
-                action="{% url 'loans:cliente-list' %}"
-                method="get"
-                class="zen-search-form"
-              >
-                <div class="zen-search-input-wrapper">
-                  <i class="fas fa-search"></i>
-                  <input
-                    type="text"
-                    name="search"
-                    placeholder="Buscar clientes..."
-                    class="zen-search-input"
-                  />
-                </div>
-              </form>
-            </div>
-          </div>
-
-          <!-- Messages -->
-          {% if messages %} {% for message in messages %}
-          <div
-            class="zen-card"
-            style="border-left: 4px solid {% if message.tags == 'success' %}#5dd39e{% elif message.tags == 'error' %}#ee5a6f{% else %}#5b9bd5{% endif %}; margin-bottom: 20px;"
-          >
-            <div class="zen-card-body">{{ message }}</div>
-          </div>
-          {% endfor %} {% endif %}
-
-          <!-- Page Content -->
-          {% block content %}{% endblock %}
-        </div>
-      </main>
+  <!-- Sidebar -->
+  <aside class="zen-sidebar" id="sidebar">
+    <div class="zen-sidebar-header">
+      <div class="zen-logo">
+        <i class="fas fa-hand-holding-dollar"></i>
+        <span>CrediFlow</span>
+      </div>
+      <div class="user-profile-card">
+        <div class="user-profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        {% if request.user.profile %}
+        <div class="user-profile-role">{{ request.user.profile.get_rol_display }}</div>
+        {% endif %}
+      </div>
     </div>
+    <nav class="zen-nav">
+      <div class="zen-nav-section">
+        <div class="zen-nav-title">Principal</div>
+        <a href="{% url 'loans:dashboard' %}" class="zen-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      <div class="zen-nav-section">
+        <div class="zen-nav-title">Gestión</div>
+        <a href="{% url 'loans:cliente-list' %}" class="zen-nav-item {% if 'cliente' in request.path %}active{% endif %}">
+          <i class="fas fa-users"></i>
+          <span>Clientes</span>
+        </a>
+        <a href="{% url 'loans:prestamo-list' %}" class="zen-nav-item {% if 'prestamo' in request.path and 'historial' not in request.path %}active{% endif %}">
+          <i class="fas fa-file-invoice-dollar"></i>
+          <span>Préstamos</span>
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'loans:prestamo-historial' %}" class="zen-nav-item {% if 'historial' in request.path %}active{% endif %}">
+          <i class="fas fa-history"></i>
+          <span>Historial</span>
+        </a>
+        {% endif %}
+        {% if user.is_superuser or user.groups.filter|length > 0 and 'Administrador' in user.groups.all|join:',' or 'CEO' in user.groups.all|join:',' or 'Gerente' in user.groups.all|join:',' %}
+        <a href="{% url 'loans:usuario-list' %}" class="zen-nav-item {% if 'usuario' in request.path %}active{% endif %}">
+          <i class="fas fa-user-cog"></i>
+          <span>Usuarios</span>
+        </a>
+        {% endif %}
+      </div>
+      <div class="zen-nav-section">
+        <div class="zen-nav-title">Cuotas</div>
+        <a href="{% url 'loans:cuotas-proximas' %}" class="zen-nav-item">
+          <i class="fas fa-clock"></i>
+          <span>Próximas a Vencer</span>
+          <span class="zen-nav-badge badge-new">NEW</span>
+        </a>
+        <a href="{% url 'loans:cuotas-vencidas' %}" class="zen-nav-item {% if request.path == '/cuotas/vencidas/' %}active{% endif %}">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Cuotas Vencidas</span>
+        </a>
+      </div>
+      {% if user.is_superuser or user.groups.filter|length > 0 and 'Administrador' in user.groups.all|join:',' or 'CEO' in user.groups.all|join:',' or 'Gerente' in user.groups.all|join:',' %}
+      <div class="zen-nav-section">
+        <div class="zen-nav-title">Reportes</div>
+        <a href="{% url 'loans:revision-cobros' %}" class="zen-nav-item {% if 'revision-cobros' in request.path %}active{% endif %}">
+          <i class="fas fa-receipt"></i>
+          <span>Revisión de Cobros</span>
+        </a>
+      </div>
+      {% endif %}
+      <div class="zen-nav-section" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+        <a href="{% url 'loans:logout' %}" class="zen-nav-item" style="color: #ee5a6f;">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Cerrar Sesión</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- Main Content -->
+  <main class="zen-main">
+    <!-- Header -->
+    <header class="zen-header">
+      <div class="zen-header-left">
+        <h2 class="zen-header-title">{% block page_title %}CrediFlow{% endblock %}</h2>
+      </div>
+      <div class="zen-header-right">
+        <a href="{% url 'loans:dashboard' %}" class="zen-header-icon" title="Dashboard">
+          <i class="fas fa-chart-pie"></i>
+        </a>
+        <a href="{% url 'loans:cuotas-vencidas' %}" class="zen-header-icon" title="Cuotas Vencidas">
+          <i class="fas fa-bell"></i>
+          {% if cuotas_vencidas_count > 0 %}
+          <span class="badge">{{ cuotas_vencidas_count }}</span>
+          {% endif %}
+        </a>
+        <div class="zen-user" onclick="toggleUserMenu()">
+          <div class="zen-user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <span class="zen-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+          <i class="fas fa-chevron-down"></i>
+          <div class="zen-user-dropdown" id="userDropdown">
+            <a href="#" onclick="openUserProfileModal(); return false;" class="zen-dropdown-item">
+              <i class="fas fa-user-edit"></i>
+              <span>Editar Perfil</span>
+            </a>
+            {% if request.user.is_superuser %}
+            <a href="/admin/" target="_blank" class="zen-dropdown-item" style="color: #5b9bd5;">
+              <i class="fas fa-cogs"></i>
+              <span>Administración Django</span>
+            </a>
+            <div class="zen-dropdown-divider"></div>
+            {% endif %}
+            <a href="{% url 'loans:logout' %}" class="zen-dropdown-item" style="color: #ee5a6f;">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Cerrar Sesión</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Content -->
+    <div class="zen-content">
+      <!-- Breadcrumb con Búsqueda -->
+      <div class="zen-breadcrumb-search-container">
+        <div class="zen-breadcrumb">
+          <i class="fas fa-home"></i>
+          <span>/</span>
+          <a href="{% url 'loans:dashboard' %}">Dashboard</a>
+          {% block breadcrumb %}{% endblock %}
+        </div>
+        <div class="zen-breadcrumb-search">
+          <form action="{% url 'loans:cliente-list' %}" method="get">
+            <div class="zen-search-input-wrapper">
+              <i class="fas fa-search"></i>
+              <input type="text" name="search" placeholder="Buscar clientes..." class="zen-search-input">
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Messages -->
+      {% if messages %}
+        {% for message in messages %}
+        <div class="zen-card" style="border-left: 4px solid {% if message.tags == 'success' %}#5dd39e{% elif message.tags == 'error' %}#ee5a6f{% else %}#5b9bd5{% endif %}; margin-bottom: 16px;">
+          <div class="zen-card-body">{{ message }}</div>
+        </div>
+        {% endfor %}
+      {% endif %}
+      
+      <!-- Page Content -->
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -230,6 +209,27 @@
         overlay.classList.toggle("active");
       }
 
+      // Toggle user dropdown menu
+      function toggleUserMenu(event) {
+        const dropdown = document.getElementById("userDropdown");
+        dropdown.classList.toggle("show");
+
+        // Prevenir que el evento se propague
+        if (event) {
+          event.stopPropagation();
+        }
+      }
+
+      // Cerrar menú al hacer clic fuera
+      document.addEventListener("click", function (event) {
+        const dropdown = document.getElementById("userDropdown");
+        const userMenu = document.querySelector(".zen-user");
+
+        if (dropdown && !userMenu.contains(event.target)) {
+          dropdown.classList.remove("show");
+        }
+      });
+
       // Close sidebar when clicking on a link (mobile)
       document.querySelectorAll(".zen-nav-item").forEach((item) => {
         item.addEventListener("click", function () {
@@ -248,6 +248,243 @@
           overlay.classList.remove("active");
         }
       });
+
+      // Función para abrir modal de editar perfil
+      function openUserProfileModal() {
+        // Cerrar el menú desplegable
+        document.getElementById("userDropdown").classList.remove("show");
+
+        // Cargar el formulario de perfil
+        $.ajax({
+          url: "{% url 'loans:user-profile-edit' %}",
+          type: "GET",
+          success: function (response) {
+            $("#userProfileModalBody").html(response);
+            $("#userProfileModal").css("display", "flex");
+          },
+          error: function () {
+            alert("Error al cargar el formulario de perfil");
+          },
+        });
+      }
+
+      // Función universal para cerrar modales - compatible con Bootstrap y Zen
+      window.closeModal = function(modalId) {
+          console.log('=== closeModal UNIVERSAL (base_zen) ===');
+          console.log('Cerrando modal:', modalId);
+          
+          // MÉTODO 1: Intentar con Bootstrap (si existe)
+          var bootstrapModal = $('#' + modalId);
+          if (bootstrapModal.length > 0 && bootstrapModal.hasClass('modal')) {
+              console.log('Detectado modal Bootstrap, usando Bootstrap dismiss');
+              bootstrapModal.modal('hide');
+              return;
+          }
+          
+          // MÉTODO 2: Intentar con data-bs-dismiss
+          var bsDismissBtn = $('[data-bs-dismiss="modal"][data-target="#' + modalId + '"]');
+          if (bsDismissBtn.length > 0) {
+              console.log('Detectado botón Bootstrap dismiss, haciendo clic');
+              bsDismissBtn.trigger('click');
+              return;
+          }
+          
+          // MÉTODO 3: Sistema Zen - método agresivo
+          var modal = $('#' + modalId);
+          console.log('Modal encontrado:', modal.length > 0);
+          
+          if (modal.length === 0) {
+              console.log('ERROR: Modal no encontrado');
+              return;
+          }
+          
+          console.log('Usando sistema Zen modal');
+          console.log('Estado ANTES:');
+          console.log('  - Display:', modal.css('display'));
+          console.log('  - Classes:', modal.attr('class'));
+          
+          // MÉTODO 1: Remover clase show
+          modal.removeClass('show');
+          
+          // MÉTODO 2: Limpiar style inline completamente
+          modal.removeAttr('style');
+          
+          // MÉTODO 3: Agregar clase hidden con !important
+          modal.addClass('hidden');
+          
+          // MÉTODO 4: Forzar display none con !important via CSS
+          modal[0].style.setProperty('display', 'none', 'important');
+          modal[0].style.setProperty('visibility', 'hidden', 'important');
+          modal[0].style.setProperty('opacity', '0', 'important');
+          modal[0].style.setProperty('pointer-events', 'none', 'important');
+          
+          // MÉTODO 5: Ocultar con jQuery hide()
+          modal.hide();
+          
+          // MÉTODO 6: Mover elemento fuera de la vista (último recurso)
+          modal.css({
+              'position': 'absolute',
+              'left': '-9999px',
+              'top': '-9999px'
+          });
+          
+          console.log('Estado DESPUÉS:');
+          console.log('  - Display:', modal.css('display'));
+          console.log('  - Classes:', modal.attr('class'));
+          
+          // Verificación final y reseteo del modal
+          setTimeout(function() {
+              var isVisible = modal.is(':visible');
+              console.log('¿Modal visible?:', isVisible);
+              console.log('=== FIN closeModal UNIVERSAL ===');
+              
+              if (isVisible) {
+                  console.log('ADVERTENCIA: Modal sigue visible, aplicando método extremo');
+                  // MÉTODO EXTREMO: Eliminar temporalmente y recrear
+                  var modalHTML = modal[0].outerHTML;
+                  modal.remove();
+                  setTimeout(function() {
+                      $('body').append(modalHTML);
+                      console.log('Modal recreado');
+                      
+                      // Re-inicializar eventos después de recrear
+                      setTimeout(function() {
+                          console.log('Re-inicializando eventos después de recrear modal...');
+                          // Re-bind eventos para el nuevo modal
+                          $('#' + modalId + ' .zen-modal-close').off('click').on('click', function(e) {
+                              e.preventDefault();
+                              console.log('X button clicked (re-reinicializado)');
+                              closeModal(modalId);
+                          });
+                          
+                          $('#' + modalId + ' .zen-btn-outline').off('click').on('click', function(e) {
+                              var buttonText = $(this).text().trim();
+                              if (buttonText === 'Cancelar' || buttonText.includes('Cancelar') || buttonText === 'Cancel' || buttonText.includes('Cancel')) {
+                                  e.preventDefault();
+                                  console.log('Cancel button clicked (re-reinicializado)');
+                                  closeModal(modalId);
+                              }
+                          });
+                          
+                          console.log('Eventos re-inicializados para modal:', modalId);
+                      }, 50);
+                  }, 100);
+              } else {
+                  // Resetear el modal a su estado original para poder abrirlo de nuevo
+                  console.log('Reseteando modal a estado original...');
+                  modal.removeClass('show hidden');
+                  modal.removeAttr('style');
+                  modal.css({
+                      'position': '',
+                      'left': '',
+                      'top': '',
+                      'display': 'none'
+                  });
+                  
+                  // Limpiar el contenido del modal para evitar contenido residual
+                  var modalBody = modal.find('.zen-modal-body, .modal-body');
+                  if (modalBody.length > 0) {
+                      modalBody.html('');
+                      console.log('Contenido del modal limpiado');
+                  }
+                  
+                  console.log('Modal reseteado y listo para reabrir');
+              }
+          }, 100);
+      };
+      
+      // Eventos UNIVERSALES para ambos sistemas de modales
+      $(document).ready(function() {
+          console.log('Inicializando eventos universales de modales (base_zen)...');
+          
+          // Evento para clic fuera del modal (ambos sistemas)
+          $(document).on('click', '.zen-modal, .modal', function(e) {
+              if (e.target === this) {
+                  var modalId = $(this).attr('id');
+                  console.log('Clic fuera del modal, cerrando:', modalId);
+                  closeModal(modalId);
+              }
+          });
+          
+          // Evento para botones de cierre X (ambos sistemas)
+          $(document).on('click', '.zen-modal-close, .btn-close[data-bs-dismiss="modal"]', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Botón X clickeado');
+              
+              // Buscar el modal padre
+              var modal = $(this).closest('.zen-modal, .modal');
+              if (modal.length > 0) {
+                  var modalId = modal.attr('id');
+                  console.log('Cerrando modal desde botón X:', modalId);
+                  closeModal(modalId);
+              } else {
+                  console.log('No se encontró el modal padre, cerrando todos');
+                  $('.zen-modal, .modal').removeClass('show').css('display', 'none');
+                  $('.modal').modal('hide'); // Bootstrap
+              }
+          });
+          
+          // Evento para botones Cancelar (ambos sistemas)
+          $(document).on('click', '.zen-btn-outline, .btn-secondary', function(e) {
+              var buttonText = $(this).text().trim();
+              console.log('Botón clickeado, texto:', buttonText);
+              
+              if (buttonText === 'Cancelar' || buttonText.includes('Cancelar') || buttonText === 'Cancel' || buttonText.includes('Cancel')) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Botón Cancelar detectado');
+                  
+                  // Buscar el modal padre
+                  var modal = $(this).closest('.zen-modal, .modal');
+                  if (modal.length > 0) {
+                      var modalId = modal.attr('id');
+                      console.log('Cerrando modal desde botón Cancelar:', modalId);
+                      closeModal(modalId);
+                  } else {
+                      console.log('No se encontró el modal padre desde Cancelar, cerrando todos');
+                      $('.zen-modal, .modal').removeClass('show').css('display', 'none');
+                      $('.modal').modal('hide'); // Bootstrap
+                  }
+              }
+          });
+          
+          // Evento para data-bs-dismiss (Bootstrap)
+          $(document).on('click', '[data-bs-dismiss="modal"]', function(e) {
+              e.preventDefault();
+              var target = $(this).data('target') || $(this).attr('data-target');
+              if (target) {
+                  console.log('Botón Bootstrap dismiss detectado, target:', target);
+                  closeModal(target.replace('#', ''));
+              }
+          });
+          
+          console.log('Eventos universales de modales inicializados (base_zen)');
+      });
     </script>
+
+    <!-- Modal Container -->
+    <div id="userProfileModal" class="zen-modal" style="display: none">
+      <div
+        class="zen-modal-overlay"
+        onclick="closeModal('userProfileModal')"
+      ></div>
+      <div class="zen-modal-content">
+        <div class="zen-modal-header">
+          <h3 class="zen-modal-title" id="userProfileModalTitle">
+            Editar Perfil
+          </h3>
+          <button
+            class="zen-modal-close"
+            onclick="closeModal('userProfileModal')"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="zen-modal-body" id="userProfileModalBody">
+          <!-- El contenido se cargará aquí -->
+        </div>
+      </div>
+    </div>
   </body>
 </html>

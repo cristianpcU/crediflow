@@ -1,5 +1,7 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Cliente, Prestamo, Cuota, GastoAdicional
+from decimal import Decimal, InvalidOperation
 
 
 class ClienteForm(forms.ModelForm):
@@ -67,27 +69,91 @@ class ClienteForm(forms.ModelForm):
 class PrestamoForm(forms.ModelForm):
     class Meta:
         model = Prestamo
-        fields = ['cliente', 'monto_principal', 'tasa_interes_mensual', 'monto_interes_mensual', 'interes_total_fijo', 'duracion_meses', 'fecha_inicio', 'notas']
+        fields = ['cliente', 'monto_principal', 'duracion_meses', 'tasa_interes_mensual', 'monto_interes_mensual', 'interes_total_fijo', 'fecha_inicio', 'notas']
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-select select2'}),
             'monto_principal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01', 'placeholder': '1000.00'}),
-            'tasa_interes_mensual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '5.00'}),
-            'monto_interes_mensual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ej: 50.00'}),
-            'interes_total_fijo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ej: 150.00'}),
             'duracion_meses': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'placeholder': '12'}),
+            'tasa_interes_mensual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '5.00', 'readonly': 'readonly'}),
+            'monto_interes_mensual': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ej: 50.00', 'readonly': 'readonly'}),
+            'interes_total_fijo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ej: 150.00', 'readonly': 'readonly'}),
             'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Notas adicionales (opcional)'}),
         }
         labels = {
             'cliente': 'Cliente',
             'monto_principal': 'Monto Principal ($)',
-            'tasa_interes_mensual': 'Tasa de Interés Mensual (%)',
-            'monto_interes_mensual': 'Monto Interés Mensual ($)',
-            'interes_total_fijo': 'Interés Total Fijo ($)',
             'duracion_meses': 'Duración (meses)',
+            'tasa_interes_mensual': 'Tasa de Interés Mensual (%) - Calculado',
+            'monto_interes_mensual': 'Monto Interés Mensual ($) - Calculado',
+            'interes_total_fijo': 'Interés Total ($) - Calculado',
             'fecha_inicio': 'Fecha de Inicio',
             'notas': 'Notas',
         }
+    
+    # Campo adicional para ingresar el monto mensual a cobrar
+    monto_cuota_mensual = forms.DecimalField(
+        required=False,
+        decimal_places=2,
+        max_digits=10,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'step': '0.01',
+            'min': '0.01',
+            'placeholder': 'Ej: 0.00',
+            'id': 'id_monto_cuota_mensual'
+        }),
+        label='Monto Mensual a Cobrar ($)',
+        help_text='Ingrese el monto total que cobrará mensualmente (capital + interés)'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        # Extraer parámetro personalizado antes de llamar a super()
+        cliente_preseleccionado = kwargs.pop('cliente_preseleccionado', None)
+        
+        super().__init__(*args, **kwargs)
+        
+        # Establecer fecha actual como valor por defecto si no hay instancia
+        if not self.instance or not self.instance.pk:
+            from datetime import date
+            today = date.today()
+            fecha_str = today.strftime('%Y-%m-%d')
+            
+            # Establecer valor inicial
+            self.fields['fecha_inicio'].initial = today
+            print(f"DEBUG: Initial establecido: {self.fields['fecha_inicio'].initial}")
+            
+            # Establecer valor directamente en el widget
+            self.fields['fecha_inicio'].widget.attrs['value'] = fecha_str
+            print(f"DEBUG: Widget value establecido: {self.fields['fecha_inicio'].widget.attrs['value']}")
+            
+            # También establecer data-value como fallback
+            self.fields['fecha_inicio'].widget.attrs['data-value'] = fecha_str
+            
+            print(f"DEBUG: Fecha actual establecida: {fecha_str}")
+        else:
+            print(f"DEBUG: Es edición, no se establece fecha por defecto. Instance PK: {self.instance.pk}")
+        
+        # Remover readonly de los campos calculados para que se envíen en el POST
+        # Usar pop() para evitar KeyError si el atributo no existe
+        self.fields['tasa_interes_mensual'].widget.attrs.pop('readonly', None)
+        self.fields['monto_interes_mensual'].widget.attrs.pop('readonly', None)
+        self.fields['interes_total_fijo'].widget.attrs.pop('readonly', None)
+        
+        # Si es edición (instance existe), deshabilitar el campo cliente y precargar cuota
+        if self.instance and self.instance.pk:
+            self.fields['cliente'].disabled = True
+            self.fields['cliente'].widget.attrs['style'] = 'background-color: #e9ecef; cursor: not-allowed;'
+            self.fields['cliente'].help_text = 'El cliente no puede ser modificado en un préstamo existente'
+            # Precargar monto_cuota_mensual con el valor actual de la cuota
+            if self.instance.cuotas.exists():
+                self.fields['monto_cuota_mensual'].initial = self.instance.valor_cuota
+        
+        # Si viene desde el módulo de cliente (creación con cliente preseleccionado)
+        if cliente_preseleccionado:
+            self.fields['cliente'].disabled = True
+            self.fields['cliente'].widget.attrs['style'] = 'background-color: #e9ecef; cursor: not-allowed;'
+            self.fields['cliente'].help_text = 'Cliente seleccionado automáticamente'
     
     def clean_fecha_inicio(self):
         from datetime import date, timedelta
@@ -108,10 +174,33 @@ class PrestamoForm(forms.ModelForm):
         tasa_interes = cleaned_data.get('tasa_interes_mensual')
         monto_interes_mensual = cleaned_data.get('monto_interes_mensual')
         interes_fijo = cleaned_data.get('interes_total_fijo')
+        monto_principal = cleaned_data.get('monto_principal')
+        duracion_meses = cleaned_data.get('duracion_meses')
         
-        # Validar que se defina al menos uno de los tres métodos de interés
-        if not tasa_interes and not monto_interes_mensual and not interes_fijo:
-            raise forms.ValidationError('Debes definir al menos uno: Tasa de Interés Mensual (%), Monto Interés Mensual ($) o Interés Total Fijo ($)')
+        # Obtener monto_cuota_mensual del data (campo no está en el modelo)
+        monto_cuota_str = self.data.get('monto_cuota_mensual', '').strip()
+        monto_cuota = None
+        
+        if monto_cuota_str:
+            try:
+                monto_cuota = Decimal(monto_cuota_str)
+            except (ValueError, InvalidOperation):
+                raise forms.ValidationError('El Monto Mensual a Cobrar debe ser un número válido')
+        
+        # Validar que se defina al menos uno de los métodos de interés
+        if not tasa_interes and not monto_interes_mensual and not interes_fijo and not monto_cuota:
+            raise forms.ValidationError('Debes definir al menos uno: Monto Mensual a Cobrar, Tasa de Interés Mensual (%), Monto Interés Mensual ($) o Interés Total Fijo ($)')
+        
+        # Si se definió monto_cuota_mensual, validar que sea mayor que la cuota de capital
+        if monto_cuota and monto_principal and duracion_meses:
+            import math
+            capital_por_cuota = Decimal(str(math.ceil(float(monto_principal / duracion_meses))))
+            
+            if monto_cuota < capital_por_cuota:
+                raise forms.ValidationError(
+                    f'El Monto Mensual a Cobrar (${monto_cuota}) debe ser mayor o igual que la cuota de capital (${capital_por_cuota}). '
+                    f'El capital se redondea hacia arriba para garantizar que se pague todo el préstamo.'
+                )
         
         return cleaned_data
 
@@ -176,3 +265,33 @@ class PrestamoGastosForm(forms.ModelForm):
         labels = {
             'gastos_adicionales': 'Gastos Adicionales',
         }
+
+
+class UserProfileForm(forms.ModelForm):
+    """Formulario para editar perfil de usuario"""
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'zen-form-control', 'placeholder': 'Nombres'}),
+            'last_name': forms.TextInput(attrs={'class': 'zen-form-control', 'placeholder': 'Apellidos'}),
+            'email': forms.EmailInput(attrs={'class': 'zen-form-control', 'placeholder': 'correo@ejemplo.com'}),
+        }
+        labels = {
+            'first_name': 'Nombres',
+            'last_name': 'Apellidos',
+            'email': 'Correo Electrónico',
+        }
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Validar que el email no esté en uso por otro usuario
+            qs = User.objects.filter(email=email)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            
+            if qs.exists():
+                raise forms.ValidationError('Este correo electrónico ya está en uso')
+        
+        return email

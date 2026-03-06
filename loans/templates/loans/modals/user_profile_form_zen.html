@@ -1,0 +1,129 @@
+{% load widget_tweaks %}
+
+<form id="userProfileForm" method="post" action="{% url 'loans:user-profile-edit' %}">
+  {% csrf_token %}
+  
+  <div class="zen-form-group">
+    <label for="{{ form.first_name.id_for_label }}" class="zen-form-label">
+      <i class="fas fa-user" style="color: #5b9bd5; margin-right: 5px;"></i>
+      {{ form.first_name.label }}
+    </label>
+    {% render_field form.first_name class="zen-form-control" placeholder="Nombres" %}
+    {% if form.first_name.errors %}
+    <div class="zen-form-error">{{ form.first_name.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="zen-form-group">
+    <label for="{{ form.last_name.id_for_label }}" class="zen-form-label">
+      <i class="fas fa-user" style="color: #5b9bd5; margin-right: 5px;"></i>
+      {{ form.last_name.label }}
+    </label>
+    {% render_field form.last_name class="zen-form-control" placeholder="Apellidos" %}
+    {% if form.last_name.errors %}
+    <div class="zen-form-error">{{ form.last_name.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="zen-form-group">
+    <label for="{{ form.email.id_for_label }}" class="zen-form-label">
+      <i class="fas fa-envelope" style="color: #5b9bd5; margin-right: 5px;"></i>
+      {{ form.email.label }}
+    </label>
+    {% render_field form.email class="zen-form-control" placeholder="correo@ejemplo.com" %}
+    {% if form.email.errors %}
+    <div class="zen-form-error">{{ form.email.errors.0 }}</div>
+    {% endif %}
+  </div>
+
+  <div class="zen-form-group">
+    <label class="zen-form-label">
+      <i class="fas fa-user-circle" style="color: #5b9bd5; margin-right: 5px;"></i>
+      Usuario
+    </label>
+    <input type="text" class="zen-form-control" value="{{ user.username }}" disabled style="background: #f8f9fa; cursor: not-allowed;">
+    <small style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block;">
+      <i class="fas fa-info-circle"></i> El nombre de usuario no se puede modificar
+    </small>
+  </div>
+
+  <div class="zen-modal-footer">
+    <button type="button" class="zen-btn zen-btn-outline" onclick="closeModal('userProfileModal')">
+      <i class="fas fa-times"></i> Cancelar
+    </button>
+    <button type="submit" class="zen-btn zen-btn-primary">
+      <i class="fas fa-save"></i> Guardar Cambios
+    </button>
+  </div>
+</form>
+
+<script>
+  $(document).ready(function() {
+    $('#userProfileForm').on('submit', function(e) {
+      e.preventDefault();
+      
+      $.ajax({
+        url: $(this).attr('action'),
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(response) {
+          if (response.success) {
+            closeModal('userProfileModal');
+            
+            // Actualizar el nombre en el header
+            $('.zen-user-name').text(response.full_name || response.username);
+            
+            // Mostrar mensaje de éxito
+            showNotification('Perfil actualizado correctamente', 'success');
+            
+            // Recargar la página después de 1 segundo
+            setTimeout(function() {
+              location.reload();
+            }, 1000);
+          } else {
+            // Mostrar errores
+            if (response.errors) {
+              let errorHtml = '<div class="alert alert-danger" style="margin-top: 15px;">';
+              errorHtml += '<strong>Errores:</strong><ul style="margin-bottom: 0;">';
+              for (let field in response.errors) {
+                response.errors[field].forEach(function(error) {
+                  errorHtml += '<li>' + error + '</li>';
+                });
+              }
+              errorHtml += '</ul></div>';
+              $('#userProfileForm').prepend(errorHtml);
+            }
+          }
+        },
+        error: function() {
+          showNotification('Error al actualizar el perfil', 'error');
+        }
+      });
+    });
+  });
+
+  function showNotification(message, type) {
+    const bgColor = type === 'success' ? '#38ef7d' : '#ee5a6f';
+    const notification = $('<div>')
+      .css({
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: bgColor,
+        color: 'white',
+        padding: '15px 20px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: 10000,
+        fontWeight: '500'
+      })
+      .text(message)
+      .appendTo('body');
+    
+    setTimeout(function() {
+      notification.fadeOut(function() {
+        $(this).remove();
+      });
+    }, 3000);
+  }
+</script>

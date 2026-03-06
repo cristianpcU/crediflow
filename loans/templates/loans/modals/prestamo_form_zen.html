@@ -1,29 +1,26 @@
 {% load widget_tweaks %}
 
-<form id="prestamoForm" method="post" action="">
+<form id="prestamoForm" method="post" action="" class="zen-form">
   {% csrf_token %}
 
   <div class="zen-form-group">
-    <label class="zen-form-label"
-      ><i class="fas fa-user-tie" style="color: #5b9bd5; margin-right: 5px"></i>
-      {{ form.cliente.label }}</label
-    >
-    {% render_field form.cliente class="zen-form-control zen-select2" %} 
+    <label class="zen-form-label">
+      <i class="fas fa-user-tie" style="color: #5b9bd5; margin-right: 5px"></i>
+      {{ form.cliente.label }}
+    </label>
+    {% render_field form.cliente class="zen-form-control zen-select2" %}
     {% if form.cliente.errors %}
     <div class="zen-form-error">{{ form.cliente.errors.0 }}</div>
     {% endif %}
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+  <div class="zen-form-grid zen-form-grid-2">
     <div class="zen-form-group">
-      <label class="zen-form-label"
-        ><i
-          class="fas fa-dollar-sign"
-          style="color: #5dd39e; margin-right: 5px"
-        ></i>
-        {{ form.monto_principal.label }}</label
-      >
-      {% render_field form.monto_principal class="zen-form-control" placeholder="1000.00" %} 
+      <label class="zen-form-label">
+        <i class="fas fa-dollar-sign" style="color: #5dd39e; margin-right: 5px"></i>
+        {{ form.monto_principal.label }}
+      </label>
+      {% render_field form.monto_principal class="zen-form-control" placeholder="1000.00" %}
       {% if form.monto_principal.errors %}
       <div class="zen-form-error">{{ form.monto_principal.errors.0 }}</div>
       {% endif %}
@@ -32,93 +29,115 @@
     <div class="zen-form-group">
       <label class="zen-form-label"
         ><i
-          class="fas fa-percentage"
-          style="color: #f7b731; margin-right: 5px"
-        ></i>
-        {{ form.tasa_interes_mensual.label }}</label
-      >
-      {% render_field form.tasa_interes_mensual class="zen-form-control" placeholder="5.00" %} 
-      {% if form.tasa_interes_mensual.errors %}
-      <div class="zen-form-error">{{ form.tasa_interes_mensual.errors.0 }}</div>
-      {% endif %}
-      <small
-        style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block"
-      >
-        <i class="fas fa-info-circle"></i> Porcentaje de interés mensual
-      </small>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
-    <div class="zen-form-group">
-      <label class="zen-form-label"
-        ><i
-          class="fas fa-money-bill-wave"
-          style="color: #5dd39e; margin-right: 5px"
-        ></i>
-        {{ form.monto_interes_mensual.label }}</label
-      >
-      {% render_field form.monto_interes_mensual class="zen-form-control" placeholder="50.00" %} 
-      {% if form.monto_interes_mensual.errors %}
-      <div class="zen-form-error">
-        {{ form.monto_interes_mensual.errors.0 }}
-      </div>
-      {% endif %}
-      <small
-        style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block"
-      >
-        <i class="fas fa-info-circle"></i> Monto fijo mensual de interés
-      </small>
-    </div>
-
-    <div class="zen-form-group">
-      <label class="zen-form-label"
-        ><i
-          class="fas fa-hand-holding-usd"
-          style="color: #f7b731; margin-right: 5px"
-        ></i>
-        {{ form.interes_total_fijo.label }}</label
-      >
-      {% render_field form.interes_total_fijo class="zen-form-control" placeholder="150.00" %} 
-      {% if form.interes_total_fijo.errors %}
-      <div class="zen-form-error">{{ form.interes_total_fijo.errors.0 }}</div>
-      {% endif %}
-      <small
-        style="color: #7f8c8d; font-size: 12px; margin-top: 5px; display: block"
-      >
-        <i class="fas fa-info-circle"></i> Interés total del préstamo
-      </small>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
-    <div class="zen-form-group">
-      <label class="zen-form-label"
-        ><i
           class="fas fa-calendar-alt"
           style="color: #5b9bd5; margin-right: 5px"
         ></i>
         {{ form.duracion_meses.label }}</label
       >
-      {% render_field form.duracion_meses class="zen-form-control" placeholder="12" %} 
-      {% if form.duracion_meses.errors %}
+ {% render_field form.duracion_meses class="zen-form-control" placeholder="12" %}
+    {% if form.duracion_meses.errors %}
       <div class="zen-form-error">{{ form.duracion_meses.errors.0 }}</div>
       {% endif %}
     </div>
+  </div>
+
+  <!-- Campo principal: Monto Mensual a Cobrar -->
+  <div
+    class="zen-form-group"
+    style="
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid #5dd39e;
+    "
+  >
+    <label class="zen-form-label" style="color: #2e7d32; font-weight: 600">
+      <i
+        class="fas fa-hand-holding-usd"
+        style="color: #5dd39e; margin-right: 5px"
+      ></i>
+      {{ form.monto_cuota_mensual.label }}
+    </label>
+
+ {% render_field form.monto_cuota_mensual class="zen-form-control" placeholder="0.00" style="font-size: 16px; font-weight: 600; border: 2px solid #5dd39e;" %}
+    {% if form.monto_cuota_mensual.errors %}
+    <div class="zen-form-error">{{ form.monto_cuota_mensual.errors.0 }}</div>
+    {% endif %}
+    <small
+      style="color: #2e7d32; font-size: 12px; margin-top: 5px; display: block"
+    >
+      <i class="fas fa-info-circle"></i> {{ form.monto_cuota_mensual.help_text}}
+    </small>
+  </div>
+
+  <!-- Campos calculados automáticamente -->
+  <div
+    style="
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    "
+  >
+    <p
+      style="
+        margin: 0 0 12px 0;
+        color: #495057;
+        font-weight: 600;
+        font-size: 13px;
+      "
+    >
+      <i class="fas fa-calculator"></i> Valores Calculados Automáticamente
+    </p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px">
+      <div class="zen-form-group">
+        <label class="zen-form-label">
+          <i
+            class="fas fa-money-bill-wave"
+            style="color: #5dd39e; margin-right: 5px"
+          ></i>
+          {{ form.monto_interes_mensual.label }}
+        </label>
+ {% render_field form.monto_interes_mensual class="zen-form-control" placeholder="0.00" readonly="readonly" style="background: #e9ecef;" %}
+      </div>
+
+      <div class="zen-form-group">
+        <label class="zen-form-label">
+          <i
+            class="fas fa-percentage"
+            style="color: #f7b731; margin-right: 5px"
+          ></i>
+          {{ form.tasa_interes_mensual.label }}
+        </label>
+ {% render_field form.tasa_interes_mensual class="zen-form-control" placeholder="0.00" readonly="readonly" style="background: #e9ecef;" %}
+      </div>
+    </div>
 
     <div class="zen-form-group">
-      <label class="zen-form-label"
-        ><i
-          class="fas fa-calendar-check"
-          style="color: #5b9bd5; margin-right: 5px"
+      <label class="zen-form-label">
+        <i
+          class="fas fa-hand-holding-usd"
+          style="color: #f7b731; margin-right: 5px"
         ></i>
-        {{ form.fecha_inicio.label }}</label
-      >
-      {% render_field form.fecha_inicio class="zen-form-control" %} 
-      {% if form.fecha_inicio.errors %}
-      <div class="zen-form-error">{{ form.fecha_inicio.errors.0 }}</div>
-      {% endif %}
+        {{ form.interes_total_fijo.label }}
+      </label>
+ {% render_field form.interes_total_fijo class="zen-form-control" placeholder="0.00" readonly="readonly" style="background: #e9ecef;" %}
     </div>
+  </div>
+
+  <div class="zen-form-group">
+    <label class="zen-form-label"
+      ><i
+        class="fas fa-calendar-check"
+        style="color: #5b9bd5; margin-right: 5px"
+      ></i>
+      {{ form.fecha_inicio.label }}</label
+    >
+    {% render_field form.fecha_inicio class="zen-form-control" %}
+    {% if form.fecha_inicio.errors %}
+    <div class="zen-form-error">{{ form.fecha_inicio.errors.0 }}</div>
+    {% endif %}
   </div>
 
   <div class="zen-form-group">
@@ -129,7 +148,7 @@
       ></i>
       {{ form.notas.label }}</label
     >
-    {% render_field form.notas class="zen-form-control" rows="3" placeholder="Notas adicionales (opcional)" %} 
+ {% render_field form.notas class="zen-form-control" rows="3" placeholder="Notas adicionales (opcional)" %}
     {% if form.notas.errors %}
     <div class="zen-form-error">{{ form.notas.errors.0 }}</div>
     {% endif %}
@@ -139,25 +158,24 @@
     style="
       margin-bottom: 15px;
       padding: 12px;
-      background: #e8f5e9;
-      border-left: 4px solid #5dd39e;
+      background: #e3f2fd;
+      border-left: 4px solid #5b9bd5;
       border-radius: 4px;
     "
   >
-    <p style="margin: 0 0 8px 0; color: #2e7d32; font-size: 13px">
-      <i class="fas fa-lightbulb"></i> <strong>Opciones de Interés:</strong>
+    <p style="margin: 0 0 8px 0; color: #1976d2; font-size: 13px">
+      <i class="fas fa-lightbulb"></i> <strong>Cálculo Automático:</strong>
     </p>
-    <ul style="margin: 0; padding-left: 20px; color: #2e7d32; font-size: 12px">
+    <ul style="margin: 0; padding-left: 20px; color: #1976d2; font-size: 12px">
       <li>
-        Define el <strong>porcentaje (%)</strong> para calcular automáticamente
-        el interés
+        Ingrese el <strong>Monto Mensual a Cobrar</strong> (capital + interés)
       </li>
       <li>
-        O define el <strong>monto mensual ($)</strong> que cobrarás como interés
+        El sistema calculará automáticamente el
+        <strong>interés mensual</strong>, <strong>porcentaje</strong> e
+        <strong>interés total</strong>
       </li>
-      <li>
-        O define el <strong>interés total ($)</strong> del préstamo directamente
-      </li>
+      <li>Fórmula: Interés Mensual = Monto Mensual - (Capital / Meses)</li>
     </ul>
   </div>
 
@@ -228,79 +246,183 @@
       width: "100%",
     });
 
-    // Calcular porcentaje automáticamente cuando se ingresa monto de interés mensual
-    function calcularPorcentaje() {
+    // Función principal para calcular todos los valores desde el monto mensual a cobrar
+    function calcularDesdeMontoMensual() {
       var montoPrincipal = parseFloat($("#id_monto_principal").val());
-      var montoInteresMensual = parseFloat(
-        $("#id_monto_interes_mensual").val()
-      );
-
-      if (
-        montoPrincipal &&
-        montoPrincipal > 0 &&
-        montoInteresMensual &&
-        montoInteresMensual >= 0
-      ) {
-        // Calcular porcentaje: (Monto Mensual / Monto Principal) * 100
-        var porcentaje = (montoInteresMensual / montoPrincipal) * 100;
-        $("#id_tasa_interes_mensual").val(porcentaje.toFixed(2));
-      }
-    }
-
-    // Calcular interés total cuando se ingresa monto mensual
-    function calcularInteresTotal() {
-      var montoInteresMensual = parseFloat(
-        $("#id_monto_interes_mensual").val()
-      );
       var duracionMeses = parseInt($("#id_duracion_meses").val());
+      var montoCuotaMensual = parseFloat($("#id_monto_cuota_mensual").val());
 
-      if (
-        montoInteresMensual &&
-        montoInteresMensual >= 0 &&
-        duracionMeses &&
-        duracionMeses > 0
-      ) {
-        var interesTotal = montoInteresMensual * duracionMeses;
-        // Mostrar el interés total calculado (opcional, solo informativo)
-        console.log("Interés total calculado: $" + interesTotal.toFixed(2));
+      // Validar que todos los campos necesarios estén completos
+      if (!montoPrincipal || montoPrincipal <= 0) {
+        limpiarCamposCalculados();
+        return;
       }
+
+      if (!duracionMeses || duracionMeses <= 0) {
+        limpiarCamposCalculados();
+        return;
+      }
+
+      if (!montoCuotaMensual || montoCuotaMensual <= 0) {
+        limpiarCamposCalculados();
+        return;
+      }
+
+      // CÁLCULO CORRECTO según especificación del usuario:
+      // 1. Interés Total = (Monto Mensual × Duración) - Capital
+      // 2. Interés Mensual = Interés Total / Duración
+      // 3. Tasa Interés Mensual = (Interés Mensual / Monto Principal) × 100
+
+      // 1. Calcular interés total
+      // Total a pagar = Monto Mensual × Duración
+      var totalAPagar = montoCuotaMensual * duracionMeses;
+      // Interés Total = Total a Pagar - Capital
+      var interesTotal = totalAPagar - montoPrincipal;
+
+      // 2. Calcular interés mensual
+      var interesMensual = interesTotal / duracionMeses;
+
+      // 3. Calcular tasa de interés mensual (%)
+      var tasaInteresMensual = (interesMensual / montoPrincipal) * 100;
+
+      // 4. Calcular capital por cuota (redondeado hacia arriba)
+      var capitalPorCuota = Math.ceil(montoPrincipal / duracionMeses);
+
+      // 5. Verificación: Cuota Total = Capital + Interés
+      var cuotaVerificacion = capitalPorCuota + interesMensual;
+      var diferencia = Math.abs(cuotaVerificacion - montoCuotaMensual);
+
+      // Actualizar campos calculados
+      $("#id_monto_interes_mensual").val(interesMensual.toFixed(2));
+      $("#id_interes_total_fijo").val(interesTotal.toFixed(2));
+      $("#id_tasa_interes_mensual").val(tasaInteresMensual.toFixed(2));
+
+      // Mostrar resumen detallado en consola
+      console.log("=== Cálculo EXACTO de Préstamo ===");
+      console.log("Monto Principal: $" + montoPrincipal.toFixed(2));
+      console.log("Duración: " + duracionMeses + " meses");
+      console.log("---");
+      console.log(
+        "Capital por Cuota (redondeado): $" + capitalPorCuota.toFixed(2)
+      );
+      console.log("Interés Mensual: $" + interesMensual.toFixed(2));
+      console.log("Cuota Mensual Total: $" + montoCuotaMensual.toFixed(2));
+      console.log("---");
+      console.log(
+        "Verificación: Capital + Interés = $" + cuotaVerificacion.toFixed(2)
+      );
+      console.log(
+        "Diferencia: $" +
+          diferencia.toFixed(2) +
+          (diferencia < 0.01 ? " ✓" : " ⚠")
+      );
+      console.log("---");
+      console.log("Interés Total: $" + interesTotal.toFixed(2));
+      console.log(
+        "Total a Pagar: $" + (montoPrincipal + interesTotal).toFixed(2)
+      );
+      console.log("Tasa de Interés: " + tasaInteresMensual.toFixed(2) + "%");
     }
 
-    // Eventos para calcular automáticamente
-    $("#id_monto_interes_mensual").on("input change", function () {
-      calcularPorcentaje();
-      calcularInteresTotal();
-      // Limpiar el campo de interés total fijo si se está usando monto mensual
-      if ($(this).val()) {
-        $("#id_interes_total_fijo").val("");
-      }
+    // Limpiar campos calculados
+    function limpiarCamposCalculados() {
+      $("#id_monto_interes_mensual").val("");
+      $("#id_interes_total_fijo").val("");
+      $("#id_tasa_interes_mensual").val("");
+    }
+
+    // Eventos para recalcular cuando cambian los valores
+
+    // Recalcular cuando cambia el monto mensual a cobrar
+    $("#id_monto_cuota_mensual").on("input change", function () {
+      calcularDesdeMontoMensual();
     });
 
+    // Recalcular cuando cambian monto principal o duración
     $("#id_monto_principal").on("input change", function () {
-      if ($("#id_monto_interes_mensual").val()) {
-        calcularPorcentaje();
+      if ($("#id_monto_cuota_mensual").val()) {
+        calcularDesdeMontoMensual();
       }
     });
 
     $("#id_duracion_meses").on("input change", function () {
-      if ($("#id_monto_interes_mensual").val()) {
-        calcularInteresTotal();
+      if ($("#id_monto_cuota_mensual").val()) {
+        calcularDesdeMontoMensual();
       }
     });
 
-    // Limpiar campos relacionados cuando se usa tasa de interés porcentual
-    $("#id_tasa_interes_mensual").on("input change", function () {
-      if ($(this).val() && !$("#id_monto_interes_mensual").is(":focus")) {
-        $("#id_monto_interes_mensual").val("");
-        $("#id_interes_total_fijo").val("");
-      }
-    });
+    // PRECARGA AL EDITAR: Calcular monto_cuota_mensual si no existe
+    function precargarMontoCuotaMensual() {
+      var montoPrincipal = parseFloat($("#id_monto_principal").val());
+      var duracionMeses = parseInt($("#id_duracion_meses").val());
+      var montoCuotaActual = parseFloat($("#id_monto_cuota_mensual").val());
 
-    // Limpiar campos relacionados cuando se usa interés total fijo
-    $("#id_interes_total_fijo").on("input change", function () {
-      if ($(this).val()) {
-        $("#id_monto_interes_mensual").val("");
-        $("#id_tasa_interes_mensual").val("");
+      // Si ya tiene valor, calcular los campos derivados
+      if (montoCuotaActual && montoCuotaActual > 0) {
+        calcularDesdeMontoMensual();
+        return;
+      }
+
+      // Si no tiene valor y hay datos suficientes, calcular con 4% de interés mensual
+      if (montoPrincipal > 0 && duracionMeses > 0) {
+        var capitalPorCuota = Math.ceil(montoPrincipal / duracionMeses);
+        var interesMensual = montoPrincipal * 0.04; // 4% del monto principal
+        var montoCuotaSugerido = capitalPorCuota + interesMensual;
+
+        // Establecer el valor sugerido
+        $("#id_monto_cuota_mensual").val(montoCuotaSugerido.toFixed(2));
+
+        // Calcular los campos derivados
+        calcularDesdeMontoMensual();
+
+        console.log(
+          "Monto cuota mensual precargado: $" +
+            montoCuotaSugerido.toFixed(2) +
+            " (Capital: $" +
+            capitalPorCuota +
+            " + Interés 4%: $" +
+            interesMensual.toFixed(2) +
+            ")"
+        );
+      }
+    }
+
+    // Ejecutar precarga al cargar el formulario
+    precargarMontoCuotaMensual();
+
+    // Establecer fecha actual si el campo está vacío
+    var fechaInicioField = $('#id_fecha_inicio');
+    if (fechaInicioField.length > 0 && !fechaInicioField.val()) {
+        var today = new Date().toISOString().split('T')[0];
+        fechaInicioField.val(today);
+        console.log('Fecha actual establecida via JavaScript:', today);
+    }
+
+    // Validación al enviar el formulario
+    $("#prestamoForm").on("submit", function (e) {
+      var montoPrincipal = parseFloat($("#id_monto_principal").val());
+      var duracionMeses = parseInt($("#id_duracion_meses").val());
+      var montoCuotaMensual = parseFloat($("#id_monto_cuota_mensual").val());
+
+      if (!montoCuotaMensual || montoCuotaMensual <= 0) {
+        e.preventDefault();
+        alert("Debe ingresar el Monto Mensual a Cobrar");
+        $("#id_monto_cuota_mensual").focus();
+        return false;
+      }
+
+      if (montoPrincipal > 0 && duracionMeses > 0) {
+        var capitalPorCuota = Math.ceil(montoPrincipal / duracionMeses);
+        if (montoCuotaMensual < capitalPorCuota) {
+          e.preventDefault();
+          alert(
+            "El monto mensual a cobrar debe ser mayor o igual que la cuota de capital ($" +
+              capitalPorCuota.toFixed(2) +
+              ")\n\nNota: El capital se redondea hacia arriba para garantizar que se pague todo el préstamo."
+          );
+          $("#id_monto_cuota_mensual").focus();
+          return false;
+        }
       }
     });
   });

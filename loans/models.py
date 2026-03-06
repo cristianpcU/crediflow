@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -27,6 +28,10 @@ class Cliente(models.Model):
         ordering = ['-fecha_registro']
 
     def __str__(self):
+        return f"{self.nombres} {self.apellidos}"
+
+    @property
+    def nombre_completo(self):
         return f"{self.nombres} {self.apellidos}"
 
     def get_prestamos_activos(self):
@@ -147,9 +152,59 @@ class Prestamo(models.Model):
 
     @property
     def valor_cuota(self):
+        """Valor de la cuota mensual basado en las cuotas generadas"""
+        # Si hay cuotas generadas, usar el valor de la primera cuota
+        primera_cuota = self.cuotas.first()
+        if primera_cuota:
+            return primera_cuota.monto_total
+        # Si no hay cuotas, calcular el promedio (sin gastos)
         if self.duracion_meses > 0:
-            return self.monto_total / self.duracion_meses
+            return (self.monto_principal + self.interes_total) / self.duracion_meses
         return Decimal('0')
+    
+    # Propiedades para totales REALES basados en cuotas generadas
+    @property
+    def total_capital_cuotas(self):
+        """Suma real del capital de todas las cuotas generadas"""
+        return self.cuotas.aggregate(total=Sum('monto_capital'))['total'] or Decimal('0')
+    
+    @property
+    def total_interes_cuotas(self):
+        """Suma real del interés de todas las cuotas generadas"""
+        return self.cuotas.aggregate(total=Sum('monto_interes'))['total'] or Decimal('0')
+    
+    @property
+    def total_cuotas(self):
+        """Suma real del monto total de todas las cuotas generadas"""
+        return self.cuotas.aggregate(total=Sum('monto_total'))['total'] or Decimal('0')
+
+    @property
+    def cuotas_pagadas(self):
+        """Cantidad de cuotas pagadas"""
+        return self.cuotas.filter(estado='PAGADO').count()
+    
+    @property
+    def total_pagado(self):
+        """Suma real de lo pagado en todas las cuotas"""
+        return self.cuotas.aggregate(total=Sum('monto_pagado'))['total'] or Decimal('0')
+
+    @property
+    def saldo_total_pendiente(self):
+        """Total faltante: suma de saldos pendientes de todas las cuotas no pagadas completamente"""
+        total = Decimal('0')
+        for cuota in self.cuotas.exclude(estado='PAGADO'):
+            total += cuota.saldo_pendiente
+        return total
+
+    @property
+    def cuotas_no_pagadas(self):
+        """Cantidad de cuotas que no están completamente pagadas"""
+        return self.cuotas.exclude(estado='PAGADO').count()
+
+    @property
+    def tiene_pagos(self):
+        """Indica si ya se registró al menos un pago en alguna cuota"""
+        return self.cuotas.filter(estado__in=['PAGADO', 'PARCIAL']).exists()
 
     @property
     def fecha_fin_estimada(self):
@@ -159,22 +214,58 @@ class Prestamo(models.Model):
         # Eliminar cuotas existentes si las hay
         self.cuotas.all().delete()
         
-        # Calcular valores por cuota y redondear al entero superior
-        interes_por_cuota = Decimal(str(math.ceil(float(self.interes_total / self.duracion_meses))))
-        capital_por_cuota = Decimal(str(math.ceil(float(self.monto_principal / self.duracion_meses))))
-        valor_cuota = Decimal(str(math.ceil(float(self.valor_cuota))))
+        # CÁLCULO EXACTO basado en el monto mensual real del usuario
         
-        # Crear cuotas
+        # 1. El monto mensual total es el que ingresa el usuario
+        valor_cuota = self.valor_cuota
+        
+        # 2. Calcular el total pagado durante todo el préstamo
+        total_pagado = valor_cuota * self.duracion_meses
+        
+        # 3. Calcular el interés total real
+        interes_total_real = total_pagado - self.monto_principal
+        
+        # 4. Calcular capital por cuota exacto (con alta precisión)
+        capital_por_cuota = self.monto_principal / self.duracion_meses
+        
+        # 5. Calcular interés por cuota exacto (con alta precisión)
+        interes_por_cuota = interes_total_real / self.duracion_meses
+        
+        # 6. Redondear a 2 decimales para display, pero mantener precisión interna
+        capital_display = capital_por_cuota.quantize(Decimal('0.01'))
+        interes_display = interes_por_cuota.quantize(Decimal('0.01'))
+        
+        # 7. Verificación y ajuste para asegurar que la suma sea exacta
+        suma_display = capital_display + interes_display
+        diferencia = valor_cuota - suma_display
+        
+        # Si hay diferencia por redondeo, ajustar el interés de la última cuota
+        ajuste_interes = Decimal('0')
+        if diferencia != Decimal('0'):
+            ajuste_interes = diferencia
+        
+        # Crear todas las cuotas con valores precisos
         for i in range(1, self.duracion_meses + 1):
             fecha_vencimiento = self.fecha_inicio + timedelta(days=30 * i)
+            
+            # Para la última cuota, aplicar ajuste si es necesario
+            if i == self.duracion_meses:
+                capital_final = capital_display
+                interes_final = interes_display + ajuste_interes
+                # Asegurar que el total sea exactamente el monto de cuota
+                total_final = valor_cuota
+            else:
+                capital_final = capital_display
+                interes_final = interes_display
+                total_final = valor_cuota
             
             Cuota.objects.create(
                 prestamo=self,
                 numero_cuota=i,
                 fecha_vencimiento=fecha_vencimiento,
-                monto_total=valor_cuota,
-                monto_capital=capital_por_cuota,
-                monto_interes=interes_por_cuota,
+                monto_total=total_final,
+                monto_capital=capital_final,
+                monto_interes=interes_final,
                 estado='PENDIENTE'
             )
 
@@ -203,19 +294,22 @@ class CuotaManager(models.Manager):
         return self.filter(
             estado='PENDIENTE',
             fecha_vencimiento__lte=fecha_limite,
-            fecha_vencimiento__gte=timezone.now().date()
+            fecha_vencimiento__gte=timezone.now().date(),
+            prestamo__estado='ACTIVO'
         ).order_by('fecha_vencimiento')
 
     def vencidas(self):
         return self.filter(
             estado__in=['PENDIENTE', 'VENCIDO'],
-            fecha_vencimiento__lt=timezone.now().date()
+            fecha_vencimiento__lt=timezone.now().date(),
+            prestamo__estado='ACTIVO'
         ).order_by('fecha_vencimiento')
 
 
 class Cuota(models.Model):
     ESTADO_CHOICES = [
         ('PENDIENTE', 'Pendiente'),
+        ('PARCIAL', 'Pago Parcial'),
         ('PAGADO', 'Pagado'),
         ('VENCIDO', 'Vencido'),
     ]
@@ -244,6 +338,14 @@ class Cuota(models.Model):
         default=Decimal('0'),
         verbose_name="Monto Pagado"
     )
+    cobrador = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Cobrador",
+        related_name="cobros_realizados"
+    )
     notas = models.TextField(blank=True, null=True, verbose_name="Notas")
 
     objects = CuotaManager()
@@ -262,15 +364,46 @@ class Cuota(models.Model):
             self.estado = 'VENCIDO'
             self.save()
 
+    @property
+    def saldo_pendiente(self):
+        """Calcula el saldo pendiente de la cuota"""
+        return self.monto_total - self.monto_pagado
+    
+    @property
+    def interes_pagado(self):
+        """Interés pagado: el interés se cobra primero"""
+        return min(self.monto_pagado, self.monto_interes)
+    
+    @property
+    def capital_pagado(self):
+        """Capital pagado: lo que sobra después de cubrir el interés"""
+        return max(Decimal('0'), self.monto_pagado - self.monto_interes)
+    
+    @property
+    def capital_pendiente(self):
+        """Capital que falta por pagar en esta cuota"""
+        return self.monto_capital - self.capital_pagado
+    
+    @property
+    def tiene_pago_parcial(self):
+        """Indica si la cuota tiene un pago parcial"""
+        return self.estado == 'PARCIAL'
+
     def registrar_pago(self, monto=None, fecha=None):
         if monto is None:
             monto = self.monto_total
         if fecha is None:
             fecha = timezone.now().date()
         
-        self.monto_pagado = monto
+        self.monto_pagado = self.monto_pagado + monto
         self.fecha_pago = fecha
-        self.estado = 'PAGADO'
+        
+        # Si el monto pagado cubre el total, marcar como PAGADO
+        if self.monto_pagado >= self.monto_total:
+            self.monto_pagado = self.monto_total
+            self.estado = 'PAGADO'
+        else:
+            self.estado = 'PARCIAL'
         self.save()
 
     @property

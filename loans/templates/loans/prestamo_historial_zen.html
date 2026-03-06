@@ -1,0 +1,99 @@
+{% extends 'loans/base_zen.html' %}
+{% load static %}
+
+{% block title %}Historial de Préstamos - CrediFlow{% endblock %}
+
+{% block breadcrumb %}
+<span>/</span>
+<span>Historial</span>
+{% endblock %}
+
+{% block content %}
+<div class="zen-page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="zen-page-title">Historial de Préstamos</h1>
+        <p class="zen-page-subtitle">Préstamos liquidados del sistema</p>
+    </div>
+    <a href="{% url 'loans:prestamo-list' %}" class="zen-btn zen-btn-outline">
+        <i class="fas fa-arrow-left"></i> Volver a Préstamos Activos
+    </a>
+</div>
+
+<!-- Tabla de Préstamos Liquidados -->
+<div class="zen-card">
+    <div class="zen-card-header">
+        <h3 class="zen-card-title">
+            <i class="fas fa-history"></i> Préstamos Liquidados
+        </h3>
+    </div>
+    <div class="zen-card-body p-0">
+        <div class="zen-table-responsive">
+            <table class="zen-table zen-table-compact">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Monto</th>
+                        <th>Condiciones</th>
+                        <th>Fecha Inicio</th>
+                        <th>Acciones</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prestamo in prestamos %}
+                    <tr>
+                        <td><strong class="text-secondary">#{{ prestamo.id }}</strong></td>
+                        <td><strong>{{ prestamo.cliente }}</strong></td>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                <strong>${{ prestamo.monto_principal|floatformat:2 }}</strong>
+                                <small class="text-muted">Total: ${{ prestamo.total_cuotas|floatformat:2 }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <small class="text-muted d-block">{{ prestamo.tasa_interes_mensual }}% × {{ prestamo.duracion_meses }} meses</small>
+                        </td>
+                        <td class="text-muted">{{ prestamo.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'loans:prestamo-detail' prestamo.pk %}" class="zen-btn zen-btn-primary zen-btn-sm" title="Ver detalle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <i class="fas fa-circle-check status-icon status-icon-info" title="Liquidado"></i>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-history empty-state-icon"></i>
+                            No hay préstamos liquidados en el historial
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<div class="zen-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page=1" class="zen-pagination-link">Primera</a>
+    <a href="?page={{ page_obj.previous_page_number }}" class="zen-pagination-link">Anterior</a>
+    {% endif %}
+    
+    <span class="zen-pagination-info">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="zen-pagination-link">Siguiente</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}" class="zen-pagination-link">Última</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

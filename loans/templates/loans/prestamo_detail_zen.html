@@ -35,6 +35,24 @@
     class="prestamo-actions"
     style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px"
   >
+    {% if prestamo.tiene_pagos and not puede_gestionar_pagos %}
+    <button
+      class="zen-btn zen-btn-outline"
+      style="flex: 1; min-width: 120px; opacity: 0.5; cursor: not-allowed"
+      disabled
+      title="No se puede editar: ya existen pagos registrados"
+    >
+      <i class="fas fa-lock"></i> <span>Editar</span>
+    </button>
+    <button
+      class="zen-btn"
+      style="background: #ee5a6f; color: white; flex: 1; min-width: 120px; opacity: 0.5; cursor: not-allowed"
+      disabled
+      title="No se puede eliminar: ya existen pagos registrados"
+    >
+      <i class="fas fa-lock"></i> <span>Eliminar</span>
+    </button>
+    {% else %}
     <button
       onclick="loadPrestamoForm('{% url 'loans:prestamo-update' prestamo.pk %}')"
       class="zen-btn zen-btn-outline"
@@ -49,6 +67,7 @@
     >
       <i class="fas fa-trash-alt"></i> <span>Eliminar</span>
     </button>
+    {% endif %}
     <a
       href="{% url 'loans:cliente-detail' prestamo.cliente.pk %}"
       class="zen-btn zen-btn-outline"
@@ -56,10 +75,19 @@
     >
       <i class="fas fa-user"></i> <span>Ver Cliente</span>
     </a>
+    {% if prestamo.estado != 'LIQUIDADO' and puede_gestionar_pagos %}
+    <button
+      onclick="confirmarLiquidacion()"
+      class="zen-btn"
+      style="background: #5dd39e; color: white; flex: 1; min-width: 120px"
+    >
+      <i class="fas fa-check-double"></i> <span>Liquidar Préstamo</span>
+    </button>
+    {% endif %}
   </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px">
+<div style="display: grid; grid-template-columns: 15% 85%; gap: 20px">
   <!-- Información del Préstamo -->
   <div class="zen-card">
     <div class="zen-card-header">
@@ -179,11 +207,12 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
           "
-          >Interés Total</label
+          >Interés Total (Cuotas)</label
         >
-        <p style="margin: 5px 0; font-weight: 600">
-          ${{ prestamo.interes_total|floatformat:2 }}
+        <p style="margin: 5px 0; font-weight: 600; color: #f7b731;">
+          ${{ prestamo.total_interes_cuotas|floatformat:2 }}
         </p>
+        <small style="font-size: 11px; color: #95a5a6;">Suma de interés de todas las cuotas</small>
       </div>
 
       <div style="margin-bottom: 15px">
@@ -238,7 +267,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
           "
-          >Monto Total</label
+          >Total a Pagar (Cuotas)</label
         >
         <p
           style="
@@ -248,8 +277,9 @@
             font-size: 20px;
           "
         >
-          ${{ prestamo.monto_total|floatformat:2 }}
+          ${{ prestamo.total_cuotas|floatformat:2 }}
         </p>
+        <small style="font-size: 11px; color: #95a5a6;">Capital: ${{ prestamo.total_capital_cuotas|floatformat:2 }} + Interés: ${{ prestamo.total_interes_cuotas|floatformat:2 }}{% if prestamo.total_gastos > 0 %} + Gastos: ${{ prestamo.total_gastos|floatformat:2 }}{% endif %}</small>
       </div>
 
       <div style="margin-bottom: 15px">
@@ -331,6 +361,12 @@
                     style="color: #5dd39e"
                     title="Pagada"
                   ></i>
+                  {% elif cuota.estado == 'PARCIAL' %}
+                  <i
+                    class="fas fa-exclamation-triangle"
+                    style="color: #ee5a6f"
+                    title="Debe: ${{ cuota.saldo_pendiente|floatformat:2 }}"
+                  ></i>
                   {% elif cuota.esta_vencida %}
                   <i
                     class="fas fa-exclamation-circle"
@@ -353,7 +389,16 @@
               <td class="hide-mobile" style="color: #f7b731">
                 ${{ cuota.monto_interes|floatformat:2 }}
               </td>
-              <td><strong>${{ cuota.monto_total|floatformat:2 }}</strong></td>
+              <td>
+                <strong>${{ cuota.monto_total|floatformat:2 }}</strong>
+                {% if cuota.estado == 'PARCIAL' %}
+                <div style="margin-top: 4px; font-size: 12px;">
+                  <small style="color: #5dd39e;"><i class="fas fa-check"></i> Pagado: ${{ cuota.monto_pagado|floatformat:2 }}</small><br>
+                  {% comment %} <small style="color: #5dd39e;">Interés: ${{ cuota.interes_pagado|floatformat:2 }}</small><br> {% endcomment %}
+                  <strong style="color: #ee5a6f; font-size: 13px;"><i class="fas fa-exclamation-triangle"></i> Debe (capital): ${{ cuota.saldo_pendiente|floatformat:2 }}</strong>
+                </div>
+                {% endif %}
+              </td>
               <td class="hide-mobile">
                 {% if cuota.estado == 'PAGADO' %}
                 <span class="zen-badge success" 
@@ -361,6 +406,10 @@
                       onclick="mostrarDetallesPago({{ cuota.pk }}, '{{ cuota.fecha_pago|date:"d/m/Y" }}', '{{ cuota.monto_pagado|floatformat:2 }}', '{{ cuota.notas|escapejs }}', {{ cuota.dias_mora }})"
                       title="Click para ver detalles del pago">
                   <i class="fas fa-check-circle"></i> Pagada
+                </span>
+                {% elif cuota.estado == 'PARCIAL' %}
+                <span class="zen-badge" style="background: #fff3cd; color: #ee5a6f; border: 1px solid #ee5a6f; font-weight: 600;">
+                  <i class="fas fa-exclamation-triangle"></i> Debe: ${{ cuota.saldo_pendiente|floatformat:2 }}
                 </span>
                 {% elif cuota.esta_vencida %}
                 <span class="zen-badge danger">
@@ -373,7 +422,21 @@
                 {% endif %}
               </td>
               <td style="text-align: center; white-space: nowrap">
-                {% if cuota.estado != 'PAGADO' %}
+                {% if cuota.estado == 'PARCIAL' and puede_gestionar_pagos %}
+                <button
+                  type="button"
+                  class="zen-btn cuota-pagar-btn"
+                  onclick="loadPagoForm('{% url 'loans:cuota-pago' cuota.pk %}')"
+                  style="padding: 8px 16px; font-size: 13px; background: #ee5a6f; color: white;"
+                >
+                  <i class="fas fa-dollar-sign"></i>
+                  <span class="hide-mobile">Pagar Resto</span>
+                </button>
+                {% elif cuota.estado == 'PARCIAL' and not puede_gestionar_pagos %}
+                <span class="zen-badge warning" style="font-size: 11px;">
+                  <i class="fas fa-lock"></i> Parcial
+                </span>
+                {% elif cuota.estado != 'PAGADO' and puede_gestionar_pagos %}
                 <button
                   type="button"
                   class="zen-btn zen-btn-success cuota-pagar-btn"
@@ -383,17 +446,32 @@
                   <i class="fas fa-dollar-sign"></i>
                   <span class="hide-mobile">Pagar</span>
                 </button>
+                {% elif cuota.estado != 'PAGADO' and not puede_gestionar_pagos %}
+                <span class="zen-badge warning" style="font-size: 11px;">
+                  <i class="fas fa-clock"></i> Pendiente
+                </span>
                 {% else %}
-                <button
-                  type="button"
-                  class="zen-btn zen-btn-outline"
-                  onclick="mostrarDetallesPago({{ cuota.pk }}, '{{ cuota.fecha_pago|date:"d/m/Y" }}', '{{ cuota.monto_pagado|floatformat:2 }}', '{{ cuota.notas|escapejs }}', {{ cuota.dias_mora }})"
-                  style="padding: 8px 16px; font-size: 13px"
-                  title="Ver detalles del pago"
-                >
-                  <i class="fas fa-info-circle"></i>
-                  <span class="hide-mobile">Detalles</span>
-                </button>
+                <div style="display: flex; gap: 4px;">
+                  <button
+                    type="button"
+                    class="zen-btn zen-btn-outline"
+                    onclick="mostrarDetallesPago({{ cuota.pk }}, '{{ cuota.fecha_pago|date:"d/m/Y" }}', '{{ cuota.monto_pagado|floatformat:2 }}', '{{ cuota.notas|escapejs }}', {{ cuota.dias_mora }})"
+                    style="padding: 8px 16px; font-size: 13px"
+                    title="Ver detalles del pago"
+                  >
+                    <i class="fas fa-info-circle"></i>
+                    <span class="hide-mobile">Detalles</span>
+                  </button>
+                  <a
+                    href="{% url 'loans:cuota-comprobante' cuota.pk %}"
+                    class="zen-btn zen-btn-primary"
+                    style="padding: 8px 16px; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
+                    title="Generar comprobante de pago"
+                  >
+                    <i class="fas fa-file-pdf"></i>
+                    <span class="hide-mobile">Comprobante</span>
+                  </a>
+                </div>
                 {% endif %}
               </td>
             </tr>
@@ -410,13 +488,13 @@
                 <strong>TOTALES:</strong>
               </td>
               <td style="padding: 15px; font-weight: 600; color: #2c3e50">
-                ${{ prestamo.monto_principal|floatformat:2 }}
+                ${{ prestamo.total_capital_cuotas|floatformat:2 }}
               </td>
               <td
                 class="hide-mobile"
                 style="padding: 15px; font-weight: 600; color: #f7b731"
               >
-                ${{ prestamo.interes_total|floatformat:2 }}
+                ${{ prestamo.total_interes_cuotas|floatformat:2 }}
               </td>
               <td
                 style="
@@ -426,7 +504,7 @@
                   font-size: 16px;
                 "
               >
-                ${{ prestamo.monto_total|floatformat:2 }}
+                ${{ prestamo.total_cuotas|floatformat:2 }}
               </td>
               <td class="hide-mobile"></td>
               <td></td>
@@ -661,7 +739,7 @@
       type: "GET",
       success: function (response) {
         $("#prestamoModalBody").html(response);
-        openModal("prestamoModal");
+        $("#prestamoModal").addClass("show");
       },
       error: function () {
         alert("Error al cargar el formulario");
@@ -716,6 +794,39 @@
         error: function () {
           alert("Error al eliminar el préstamo");
         },
+      });
+    }
+  }
+
+  // Liquidación del préstamo
+  function confirmarLiquidacion() {
+    var cuotasPendientes = {{ prestamo.cuotas_no_pagadas }};
+    var totalPendiente = parseFloat('{{ prestamo.saldo_total_pendiente|stringformat:".2f" }}');
+    
+    var mensaje = '✅ LIQUIDACIÓN DEL PRÉSTAMO #{{ prestamo.id }}\n\n' +
+      'Cliente: {{ prestamo.cliente }}\n' +
+      'Cuotas por liquidar: ' + cuotasPendientes + '\n' +
+      'Total a pagar: $' + totalPendiente.toFixed(2) + '\n\n' +
+      '⚠️ Se pagarán TODAS las cuotas pendientes (incluye saldos parciales).\n\n' +
+      '¿Desea liquidar el préstamo completo?';
+    
+    if (confirm(mensaje)) {
+      $.ajax({
+        url: '{% url "loans:prestamo-liquidar" prestamo.pk %}',
+        type: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+          if (response.success) {
+            alert('✅ ' + response.message);
+            location.reload();
+          }
+        },
+        error: function() {
+          alert('Error al liquidar el préstamo');
+        }
       });
     }
   }

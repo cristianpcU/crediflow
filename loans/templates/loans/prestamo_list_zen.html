@@ -97,7 +97,7 @@
                         <td>
                             <div class="d-flex flex-column gap-1">
                                 <strong>${{ prestamo.monto_principal|floatformat:2 }}</strong>
-                                <small class="text-muted">Total: ${{ prestamo.monto_total|floatformat:2 }}</small>
+                                <small class="text-muted">Total: ${{ prestamo.total_cuotas|floatformat:2 }}</small>
                             </div>
                         </td>
                         <td>
@@ -134,7 +134,7 @@
 </div>
 
 <!-- Modal para Préstamo -->
-<div id="prestamoModal" class="zen-modal">
+<div id="prestamoModal" class="zen-modal" style="display: none;">
     <div class="zen-modal-content">
         <div class="zen-modal-header">
             <h3 class="zen-modal-title"><i class="fas fa-file-invoice-dollar"></i> Préstamo</h3>
@@ -168,7 +168,7 @@ function loadPrestamoForm(url) {
         type: 'GET',
         success: function(data) {
             $('#prestamoModalBody').html(data);
-            $('#prestamoModal').css('display', 'flex');
+            $('#prestamoModal').addClass('show');
         },
         error: function() {
             alert('Error al cargar el formulario');
@@ -177,7 +177,7 @@ function loadPrestamoForm(url) {
 }
 
 function closeModal(modalId) {
-    $('#' + modalId).css('display', 'none');
+    $('#' + modalId).removeClass('show');
 }
 
 // Delegación de eventos para el formulario de préstamo

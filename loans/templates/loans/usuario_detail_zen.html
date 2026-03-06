@@ -1,0 +1,341 @@
+{% extends "loans/base_zen.html" %}
+
+{% block title %}Detalle de Usuario{% endblock %}
+
+{% block content %}
+<div class="zen-container">
+  <!-- Header -->
+  <div class="zen-page-header">
+    <div class="zen-page-title">
+      <i class="fas fa-user"></i>
+      <div>
+        <h1>Detalle de Usuario</h1>
+        <p>Información completa del usuario</p>
+      </div>
+    </div>
+    <div class="zen-page-actions">
+      <a href="{% url 'loans:usuario-update' usuario.pk %}" class="zen-btn zen-btn-outline">
+        <i class="fas fa-edit"></i> Editar
+      </a>
+      {% if usuario != request.user %}
+        <a href="{% url 'loans:usuario-delete' usuario.pk %}" class="zen-btn zen-btn-danger">
+          <i class="fas fa-trash"></i> Eliminar
+        </a>
+      {% endif %}
+      <a href="{% url 'loans:usuario-list' %}" class="zen-btn zen-btn-outline">
+        <i class="fas fa-arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- User Info Card -->
+  <div class="zen-user-profile">
+    <div class="zen-user-avatar-large">
+      {% if usuario.first_name %}
+        {{ usuario.first_name.0|upper }}{{ usuario.last_name.0|upper }}
+      {% else %}
+        {{ usuario.username.0|upper }}
+      {% endif %}
+    </div>
+    <div class="zen-user-info">
+      <h2>{{ usuario.username }}</h2>
+      <p class="zen-user-fullname">{{ usuario.first_name }} {{ usuario.last_name }}</p>
+      <div class="zen-user-badges">
+        {% if usuario.is_superuser %}
+          <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <i class="fas fa-crown"></i> Superusuario
+          </span>
+        {% elif usuario.is_staff %}
+          <span class="badge" style="background: linear-gradient(135deg, #f7b731 0%, #f5a623 100%); color: white;">
+            <i class="fas fa-user-shield"></i> Staff
+          </span>
+        {% else %}
+          <span class="badge" style="background: linear-gradient(135deg, #5dd39e 0%, #3d9970 100%); color: white;">
+            <i class="fas fa-user"></i> Usuario
+          </span>
+        {% endif %}
+        
+        {% if usuario.is_active %}
+          <span class="status-badge status-active">
+            <i class="fas fa-check-circle"></i> Activo
+          </span>
+        {% else %}
+          <span class="status-badge status-inactive">
+            <i class="fas fa-times-circle"></i> Inactivo
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Grid -->
+  <div class="zen-details-grid">
+    <!-- Basic Info -->
+    <div class="zen-card">
+      <div class="zen-card-header">
+        <h3 class="zen-card-title">
+          <i class="fas fa-info-circle"></i> Información Básica
+        </h3>
+      </div>
+      <div class="zen-card-body">
+        <div class="zen-detail-list">
+          <div class="zen-detail-item">
+            <label>Nombre de Usuario:</label>
+            <span>{{ usuario.username }}</span>
+          </div>
+          <div class="zen-detail-item">
+            <label>Nombre Completo:</label>
+            <span>{{ usuario.first_name }} {{ usuario.last_name }}</span>
+          </div>
+          <div class="zen-detail-item">
+            <label>Email:</label>
+            <span>{{ usuario.email|default:"Sin email" }}</span>
+          </div>
+          <div class="zen-detail-item">
+            <label>Estado:</label>
+            <span>
+              {% if usuario.is_active %}
+                <span class="status-badge status-active">
+                  <i class="fas fa-check-circle"></i> Activo
+                </span>
+              {% else %}
+                <span class="status-badge status-inactive">
+                  <i class="fas fa-times-circle"></i> Inactivo
+                </span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions -->
+    <div class="zen-card">
+      <div class="zen-card-header">
+        <h3 class="zen-card-title">
+          <i class="fas fa-shield-alt"></i> Permisos
+        </h3>
+      </div>
+      <div class="zen-card-body">
+        <div class="zen-detail-list">
+          <div class="zen-detail-item">
+            <label>Staff:</label>
+            <span>
+              {% if usuario.is_staff %}
+                <span class="status-badge status-active">
+                  <i class="fas fa-check"></i> Sí
+                </span>
+              {% else %}
+                <span class="status-badge status-inactive">
+                  <i class="fas fa-times"></i> No
+                </span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="zen-detail-item">
+            <label>Superusuario:</label>
+            <span>
+              {% if usuario.is_superuser %}
+                <span class="status-badge status-active">
+                  <i class="fas fa-crown"></i> Sí
+                </span>
+              {% else %}
+                <span class="status-badge status-inactive">
+                  <i class="fas fa-user"></i> No
+                </span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="zen-detail-item">
+            <label>Grupos:</label>
+            <span>
+              {% for group in usuario.groups.all %}
+                <span class="badge" style="background: #5b9bd5; color: white; margin-right: 4px;">
+                  {{ group.name }}
+                </span>
+              {% empty %}
+                <span style="color: #7f8c8d;">Sin grupos asignados</span>
+              {% endfor %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Info -->
+    <div class="zen-card">
+      <div class="zen-card-header">
+        <h3 class="zen-card-title">
+          <i class="fas fa-clock"></i> Actividad
+        </h3>
+      </div>
+      <div class="zen-card-body">
+        <div class="zen-detail-list">
+          <div class="zen-detail-item">
+            <label>Fecha de Registro:</label>
+            <span>{{ usuario.date_joined|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div class="zen-detail-item">
+            <label>Último Inicio de Sesión:</label>
+            <span>{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca ha iniciado sesión" }}</span>
+          </div>
+          <div class="zen-detail-item">
+            <label>ID de Usuario:</label>
+            <span>#{{ usuario.pk }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Stats -->
+  <div class="zen-card">
+    <div class="zen-card-header">
+      <h3 class="zen-card-title">
+        <i class="fas fa-chart-bar"></i> Estadísticas del Sistema
+      </h3>
+    </div>
+    <div class="zen-card-body">
+      <div class="zen-stats-grid">
+        <div class="zen-stat-card">
+          <div class="zen-stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="zen-stat-content">
+            <div class="zen-stat-number">-</div>
+            <div class="zen-stat-label">Clientes Registrados</div>
+          </div>
+        </div>
+        <div class="zen-stat-card">
+          <div class="zen-stat-icon" style="background: linear-gradient(135deg, #f7b731 0%, #f5a623 100%);">
+            <i class="fas fa-hand-holding-usd"></i>
+          </div>
+          <div class="zen-stat-content">
+            <div class="zen-stat-number">-</div>
+            <div class="zen-stat-label">Préstamos Creados</div>
+          </div>
+        </div>
+        <div class="zen-stat-card">
+          <div class="zen-stat-icon" style="background: linear-gradient(135deg, #5dd39e 0%, #3d9970 100%);">
+            <i class="fas fa-money-check-alt"></i>
+          </div>
+          <div class="zen-stat-content">
+            <div class="zen-stat-number">-</div>
+            <div class="zen-stat-label">Pagos Registrados</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.zen-user-profile {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  color: white;
+}
+
+.zen-user-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.zen-user-info h2 {
+  margin: 0 0 4px 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.zen-user-fullname {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.zen-user-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.zen-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.zen-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.zen-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e8ecef;
+}
+
+.zen-detail-item:last-child {
+  border-bottom: none;
+}
+
+.zen-detail-item label {
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.zen-detail-item span {
+  color: #5a6c7d;
+  text-align: right;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+</style>
+{% endblock %}
