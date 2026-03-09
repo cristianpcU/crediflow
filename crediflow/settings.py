@@ -31,9 +31,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0zh+r*3qza6x^x4q4+%!q^g@333_)gt37g=_gs138c_lz&$wu3'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
 ALLOWED_HOSTS = ['*']  # Permite acceso desde cualquier IP en la red local
 
 # CSRF Trusted Origins para browser preview
@@ -47,6 +44,10 @@ with open(os.path.join(BASE_DIR, 'credenciales.json')) as json_file:
     DATA = json.load(json_file)
     DATABASES = DATA.get('DATABASES')
     CSRF_TRUSTED_ORIGINS = DATA.get('CSRF_TRUSTED_ORIGINS') or CSRF_TRUSTED_ORIGINS
+    if 'DEBUG' in DATA:
+        DEBUG = DATA['DEBUG']
+    else:
+        DEBUG = True
 
 
 # Application definition
@@ -61,7 +62,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'widget_tweaks',
-    'loans',
+    'loans.apps.LoansConfig',
 ]
 
 MIDDLEWARE = [
