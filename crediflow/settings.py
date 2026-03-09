@@ -10,7 +10,8 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import json
+import os
 from pathlib import Path
 import sys
 
@@ -41,6 +42,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:64889',  # Browser preview proxy
 ]
+
+with open(os.path.join(BASE_DIR, 'credenciales.json')) as json_file:
+    DATA = json.load(json_file)
+    DATABASES = DATA.get('DATABASES')
+    CSRF_TRUSTED_ORIGINS = DATA.get('CSRF_TRUSTED_ORIGINS') or CSRF_TRUSTED_ORIGINS
 
 
 # Application definition
@@ -89,17 +95,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'crediflow.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
