@@ -3,3 +3,4 @@ python-decouple>=3.8
 django-crispy-forms>=2.1
 crispy-bootstrap5>=2.0
 django-widget-tweaks>=1.5
+reportlab>=4.0
