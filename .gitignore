@@ -222,6 +222,7 @@ create_superuser.py
 .prettierignore
 
 # Migrations (el repositorio solo debe contener __init__.py)
-*/migrations/*.py
-!*/migrations/__init__.py
+**/migrations/**
+!**/migrations
+!**/migrations/__init__.py
 /credenciales.json
