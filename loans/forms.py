@@ -7,7 +7,7 @@ from decimal import Decimal, InvalidOperation
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = ['cedula', 'nombres', 'apellidos', 'email', 'telefono', 'telefono2', 'direccion']
+        fields = ['cedula', 'nombres', 'apellidos', 'email', 'telefono', 'telefono2', 'direccion', 'observaciones']
         widgets = {
             'cedula': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '10', 'placeholder': '1234567890'}),
             'nombres': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombres'}),
@@ -16,6 +16,7 @@ class ClienteForm(forms.ModelForm):
             'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0999999999'}),
             'telefono2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0999999999 (opcional)'}),
             'direccion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Dirección completa'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Observaciones adicionales (opcional)'}),
         }
         labels = {
             'cedula': 'Cédula',
@@ -25,6 +26,7 @@ class ClienteForm(forms.ModelForm):
             'telefono': 'Teléfono',
             'telefono2': 'Teléfono 2 (Opcional)',
             'direccion': 'Dirección',
+            'observaciones': 'Observaciones (Opcional)',
         }
 
     def clean_cedula(self):

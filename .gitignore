@@ -221,7 +221,6 @@ create_superuser.py
 # Prettier configuration - Development tool
 .prettierignore
 
-# Migrations (uncomment ONLY if you're sure you want to ignore migrations)
-# Be careful with this - usually you SHOULD version migrations
-# */migrations/*.py
-# !*/migrations/__init__.py
+# Migrations (el repositorio solo debe contener __init__.py)
+*/migrations/*.py
+!*/migrations/__init__.py

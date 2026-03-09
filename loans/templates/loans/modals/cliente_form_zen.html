@@ -95,6 +95,17 @@
     {% endif %}
   </div>
 
+  <div class="zen-form-group">
+    <label class="zen-form-label"
+      ><i class="fas fa-sticky-note" style="color: #5b9bd5; margin-right: 5px"></i>
+      {{ form.observaciones.label }}</label
+    >
+    {% render_field form.observaciones class="zen-form-control" rows="3" placeholder="Observaciones adicionales (opcional)" %}
+    {% if form.observaciones.errors %}
+    <div class="zen-form-error">{{ form.observaciones.errors.0 }}</div>
+    {% endif %}
+  </div>
+
   <div
     style="
       display: flex;

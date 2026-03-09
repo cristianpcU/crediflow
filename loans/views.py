@@ -223,7 +223,7 @@ class PrestamoDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         context['puede_gestionar_pagos'] = (
             user.is_superuser or 
-            user.groups.filter(name__in=['Administrador', 'Gerente']).exists()
+            user.groups.filter(name__in=['Administrador', 'Gerente', 'Cajero']).exists()
         )
         return context
 
@@ -331,7 +331,23 @@ class AdminOrGerenteRequiredMixin(UserPassesTestMixin):
         return redirect('loans:dashboard')
 
 
-class CuotaPagoView(LoginRequiredMixin, AdminOrGerenteRequiredMixin, AjaxFormMixin, UpdateView):
+class PagoCuotaPermissionMixin(UserPassesTestMixin):
+    """Permite cobrar cuotas a Admin, Gerente o Cajero"""
+
+    def test_func(self):
+        user = self.request.user
+        if user.is_superuser:
+            return True
+        return user.groups.filter(name__in=['Administrador', 'Gerente', 'Cajero']).exists()
+
+    def handle_no_permission(self):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'No tienes permisos para registrar pagos.'}, status=403)
+        messages.error(self.request, 'Solo administradores, gerentes o cajeros pueden registrar pagos de cuotas.')
+        return redirect('loans:dashboard')
+
+
+class CuotaPagoView(LoginRequiredMixin, PagoCuotaPermissionMixin, AjaxFormMixin, UpdateView):
     model = Cuota
     form_class = CuotaPagoForm
     template_name = 'loans/modals/cuota_pago_form_zen.html'
@@ -395,7 +411,7 @@ class CuotaPagoView(LoginRequiredMixin, AdminOrGerenteRequiredMixin, AjaxFormMix
         return super().form_valid(form)
 
 
-class PrestamoLiquidarView(LoginRequiredMixin, AdminOrGerenteRequiredMixin, View):
+class PrestamoLiquidarView(AdminOrGerenteRequiredMixin, View):
     """Vista para liquidar un préstamo: paga todas las cuotas pendientes/parciales"""
     
     def post(self, request, pk):
@@ -712,22 +728,24 @@ class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, UsuarioGroupRes
         return context
     
     def form_valid(self, form):
-        # Generar contraseña temporal
-        temp_password = User.objects.make_random_password()
-        user = form.save(commit=False)
-        user.set_password(temp_password)
         user = form.save(commit=False)
 
         grupos_asignar = []
+        target_is_cajero = False
         if self._user_is_limited_to_cajero():
             cajero_group = self._get_cajero_group()
             grupos_asignar = [cajero_group]
+            target_is_cajero = True
         else:
             grupos_ids = self.request.POST.getlist('grupos')
             grupos_asignar = list(Group.objects.filter(id__in=grupos_ids))
+            target_is_cajero = any(group.name == self.cajero_group_name for group in grupos_asignar)
             if self._should_strip_admin_flags(grupos_asignar):
                 user.is_staff = False
                 user.is_superuser = False
+
+        temp_password = '1234' if target_is_cajero else User.objects.make_random_password()
+        user.set_password(temp_password)
 
         user.save()
 
