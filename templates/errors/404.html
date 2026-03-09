@@ -1,0 +1,21 @@
+{% extends 'loans/base_zen.html' %}
+
+{% block title %}Recurso no encontrado{% endblock %}
+
+{% block content %}
+<div class="zen-page">
+  <div class="zen-empty-state">
+    <div class="zen-empty-icon" style="background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%);">
+      <i class="fas fa-search-minus"></i>
+    </div>
+    <h1>Lo sentimos</h1>
+    <p>
+      La ruta <strong>{{ requested_path }}</strong> no existe o ha sido movida.
+      Verifica la dirección o regresa al panel principal.
+    </p>
+    <a href="{% url 'loans:dashboard' %}" class="zen-btn zen-btn-primary">
+      <i class="fas fa-home"></i> Ir al dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

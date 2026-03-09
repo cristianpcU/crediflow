@@ -17,7 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from loans import views as loan_views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('loans.urls')),
 ]
+
+handler404 = loan_views.custom_404_view

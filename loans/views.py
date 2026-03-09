@@ -13,7 +13,7 @@ from datetime import timedelta
 from decimal import Decimal
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 from .models import Cliente, Prestamo, Cuota, GastoAdicional
 from .forms import ClienteForm, PrestamoForm, CuotaPagoForm, GastoAdicionalForm, PrestamoGastosForm, UserProfileForm
@@ -607,47 +607,86 @@ class UserProfileEditView(LoginRequiredMixin, UpdateView):
 
 # ==================== GESTIÓN DE USUARIOS ====================
 
-class UsuarioListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+
+class UsuarioGroupRestrictionMixin:
+    """Restricciones de asignación y visibilidad según el rol del usuario autenticado"""
+
+    cajero_group_name = 'Cajero'
+    gerente_group_name = 'Gerente'
+
+    def _user_is_limited_to_cajero(self):
+        user = self.request.user
+        if user.is_superuser or user.groups.filter(name__in=['Administrador', 'CEO']).exists():
+            return False
+        return user.groups.filter(name=self.gerente_group_name).exists()
+
+    def _get_cajero_group(self):
+        return Group.objects.get(name=self.cajero_group_name)
+
+    def _get_allowed_groups(self):
+        if self._user_is_limited_to_cajero():
+            return Group.objects.filter(name=self.cajero_group_name)
+        return Group.objects.all()
+
+    def _limit_queryset_to_cajeros(self, queryset):
+        if self._user_is_limited_to_cajero():
+            return queryset.filter(groups__name=self.cajero_group_name).distinct()
+        return queryset
+
+    def _should_strip_admin_flags(self, groups):
+        for group in groups:
+            if getattr(group, 'name', None) == self.gerente_group_name:
+                return True
+        return False
+
+
+class UsuarioListView(LoginRequiredMixin, UserPassesTestMixin, UsuarioGroupRestrictionMixin, ListView):
     """Lista de usuarios - Solo Admin, CEO, Gerente"""
     model = User
     template_name = 'loans/usuario_list_zen.html'
     context_object_name = 'usuarios'
     paginate_by = 20
-    
+
     def test_func(self):
         user = self.request.user
         return user.is_superuser or user.groups.filter(name__in=['Administrador', 'CEO', 'Gerente']).exists()
-    
+
     def handle_no_permission(self):
         messages.error(self.request, 'Solo el administrador, CEO o gerente pueden acceder a la gestión de usuarios.')
         return redirect('loans:dashboard')
-    
+
     def get_queryset(self):
-        return User.objects.all().order_by('-date_joined')
-    
+        queryset = User.objects.all().order_by('-date_joined')
+        return self._limit_queryset_to_cajeros(queryset)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_usuarios'] = User.objects.count()
-        context['usuarios_activos'] = User.objects.filter(is_active=True).count()
+        base_queryset = User.objects.all()
+        context['total_usuarios'] = base_queryset.count()
+        context['usuarios_activos'] = base_queryset.filter(is_active=True).count()
+        context['solo_cajero'] = self._user_is_limited_to_cajero()
         return context
 
 
-class UsuarioDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+class UsuarioDetailView(LoginRequiredMixin, UserPassesTestMixin, UsuarioGroupRestrictionMixin, DetailView):
     """Detalle de usuario - Solo Admin, CEO, Gerente"""
     model = User
     template_name = 'loans/usuario_detail_zen.html'
     context_object_name = 'usuario'
-    
+
     def test_func(self):
         user = self.request.user
         return user.is_superuser or user.groups.filter(name__in=['Administrador', 'CEO', 'Gerente']).exists()
-    
+
     def handle_no_permission(self):
         messages.error(self.request, 'Solo el administrador, CEO o gerente pueden acceder a la gestión de usuarios.')
         return redirect('loans:dashboard')
 
+    def get_queryset(self):
+        return self._limit_queryset_to_cajeros(User.objects.all())
 
-class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, UsuarioGroupRestrictionMixin, CreateView):
     """Crear usuario - Solo Admin, CEO, Gerente"""
     model = User
     template_name = 'loans/modals/usuario_form_zen.html'
@@ -667,9 +706,9 @@ class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Crear Usuario'
         context['action'] = 'Crear'
-        # Agregar grupos al contexto
-        from django.contrib.auth.models import Group
-        context['grupos'] = Group.objects.all()
+        context['grupos'] = self._get_allowed_groups()
+        context['solo_cajero'] = self._user_is_limited_to_cajero()
+        context.setdefault('grupos_actuales', [])
         return context
     
     def form_valid(self, form):
@@ -677,12 +716,25 @@ class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         temp_password = User.objects.make_random_password()
         user = form.save(commit=False)
         user.set_password(temp_password)
+        user = form.save(commit=False)
+
+        grupos_asignar = []
+        if self._user_is_limited_to_cajero():
+            cajero_group = self._get_cajero_group()
+            grupos_asignar = [cajero_group]
+        else:
+            grupos_ids = self.request.POST.getlist('grupos')
+            grupos_asignar = list(Group.objects.filter(id__in=grupos_ids))
+            if self._should_strip_admin_flags(grupos_asignar):
+                user.is_staff = False
+                user.is_superuser = False
+
         user.save()
-        
-        # Guardar grupos si se seleccionaron
-        grupos_ids = self.request.POST.getlist('grupos')
-        if grupos_ids:
-            user.groups.set(grupos_ids)
+
+        if grupos_asignar:
+            user.groups.set(grupos_asignar)
+        else:
+            user.groups.clear()
         
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
@@ -695,7 +747,7 @@ class UsuarioCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return redirect('loans:usuario-list')
 
 
-class UsuarioUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class UsuarioUpdateView(LoginRequiredMixin, UserPassesTestMixin, UsuarioGroupRestrictionMixin, UpdateView):
     """Editar usuario - Solo Admin, CEO, Gerente"""
     model = User
     template_name = 'loans/modals/usuario_form_zen.html'
@@ -715,20 +767,30 @@ class UsuarioUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Editar Usuario'
         context['action'] = 'Editar'
-        # Agregar grupos al contexto
-        from django.contrib.auth.models import Group
-        context['grupos'] = Group.objects.all()
+        context['grupos'] = self._get_allowed_groups()
+        context['solo_cajero'] = self._user_is_limited_to_cajero()
         # Agregar grupos actuales del usuario
         context['grupos_actuales'] = self.object.groups.values_list('id', flat=True)
         return context
     
     def form_valid(self, form):
-        user = form.save()
-        
-        # Actualizar grupos si se seleccionaron
-        grupos_ids = self.request.POST.getlist('grupos')
-        if grupos_ids:
-            user.groups.set(grupos_ids)
+        user = form.save(commit=False)
+
+        grupos_asignar = []
+        if self._user_is_limited_to_cajero():
+            cajero_group = self._get_cajero_group()
+            grupos_asignar = [cajero_group]
+        else:
+            grupos_ids = self.request.POST.getlist('grupos')
+            grupos_asignar = list(Group.objects.filter(id__in=grupos_ids))
+            if self._should_strip_admin_flags(grupos_asignar):
+                user.is_staff = False
+                user.is_superuser = False
+
+        user.save()
+
+        if grupos_asignar:
+            user.groups.set(grupos_asignar)
         else:
             user.groups.clear()
         
@@ -743,7 +805,7 @@ class UsuarioUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return redirect('loans:usuario-list')
 
 
-class UsuarioDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
+class UsuarioDeleteView(LoginRequiredMixin, UserPassesTestMixin, UsuarioGroupRestrictionMixin, View):
     """Eliminar usuario - Solo Admin, CEO, Gerente"""
     
     def test_func(self):
@@ -754,8 +816,12 @@ class UsuarioDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
         messages.error(self.request, 'Solo el administrador, CEO o gerente pueden acceder a la gestión de usuarios.')
         return redirect('loans:dashboard')
     
+    def _get_usuario(self, pk):
+        queryset = self._limit_queryset_to_cajeros(User.objects.all())
+        return get_object_or_404(queryset, pk=pk)
+
     def get(self, request, pk):
-        usuario = get_object_or_404(User, pk=pk)
+        usuario = self._get_usuario(pk)
         
         # No permitir eliminar al propio usuario
         if usuario == request.user:
@@ -770,7 +836,7 @@ class UsuarioDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
         return render(request, 'loans/usuario_confirm_delete_zen.html', {'usuario': usuario})
     
     def post(self, request, pk):
-        usuario = get_object_or_404(User, pk=pk)
+        usuario = self._get_usuario(pk)
         
         # No permitir eliminar al propio usuario
         if usuario == request.user:
@@ -786,6 +852,15 @@ class UsuarioDeleteView(LoginRequiredMixin, UserPassesTestMixin, View):
         usuario.delete()
         messages.success(request, f'Usuario {username} eliminado correctamente.')
         return redirect('loans:usuario-list')
+
+
+def custom_404_view(request, exception):
+    """Vista personalizada para manejar recursos no encontrados"""
+    context = {
+        'title': 'Recurso no encontrado',
+        'requested_path': request.path,
+    }
+    return render(request, 'errors/404.html', context, status=404)
 
 
 # ==================== COMPROBANTE DE PAGO ====================

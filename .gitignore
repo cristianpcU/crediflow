@@ -221,9 +221,6 @@ create_superuser.py
 # Prettier configuration - Development tool
 .prettierignore
 
-# Templates directory - Empty, not used
-templates/
-
 # Migrations (uncomment ONLY if you're sure you want to ignore migrations)
 # Be careful with this - usually you SHOULD version migrations
 # */migrations/*.py
