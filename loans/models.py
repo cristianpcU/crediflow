@@ -16,7 +16,7 @@ class Cliente(models.Model):
     nombres = models.CharField(max_length=100, verbose_name="Nombres")
     apellidos = models.CharField(max_length=100, verbose_name="Apellidos")
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
-    telefono = models.CharField(max_length=15, verbose_name="Teléfono")
+    telefono = models.CharField(max_length=15, blank=True, null=True, verbose_name="Teléfono")
     telefono2 = models.CharField(max_length=15, blank=True, null=True, verbose_name="Teléfono 2")
     direccion = models.TextField(blank=True, null=True, verbose_name="Dirección")
     observaciones = models.TextField(blank=True, null=True, verbose_name="Observaciones")
