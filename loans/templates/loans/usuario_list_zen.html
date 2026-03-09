@@ -243,11 +243,59 @@ function loadUsuarioForm(url) {
       document.getElementById('modalContainer').innerHTML = html;
       document.getElementById('usuarioModal').style.display = 'block';
       document.body.style.overflow = 'hidden';
+      attachUsuarioFormHandler();
     })
     .catch(error => {
       console.error('Error loading form:', error);
       showNotification('Error al cargar el formulario', 'error');
     });
+}
+
+function attachUsuarioFormHandler() {
+  const form = document.getElementById('usuarioForm');
+  if (!form) return;
+
+  if (form.dataset.handlerAttached === 'true') {
+    return;
+  }
+  form.dataset.handlerAttached = 'true';
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const url = form.dataset.url || form.action || window.location.href;
+    const formData = new FormData(form);
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+      .then(async response => {
+        const contentType = response.headers.get('Content-Type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+          if (data.success) {
+            showNotification(data.message || 'Usuario guardado correctamente', 'success');
+            closeModal('usuarioModal');
+            setTimeout(() => window.location.reload(), 500);
+          } else {
+            showNotification(data.message || 'No se pudo guardar el usuario', 'error');
+          }
+        } else {
+          const html = await response.text();
+          document.getElementById('modalContainer').innerHTML = html;
+          document.getElementById('usuarioModal').style.display = 'block';
+          document.body.style.overflow = 'hidden';
+          attachUsuarioFormHandler();
+        }
+      })
+      .catch(error => {
+        console.error('Error al guardar usuario:', error);
+        showNotification('Error al guardar el usuario', 'error');
+      });
+  });
 }
 
 function closeModal(modalId) {
